@@ -24,7 +24,9 @@
 
             appId: "1:198175864321:web:7288ae6a3d5f21ba2e3200",
 
-            measurementId: "G-N22KCE322T"
+            measurementId: "G-N22KCE322T",
+            
+            databaseURL: "https://everglowftcscoutingdatabase-default-rtdb.europe-west1.firebasedatabase.app"
 
         };
 
@@ -35,17 +37,26 @@
 
         const sendButton = document.getElementById("sendButton");
 
+        function get_year_range() {
+            if (new Date().getMonth() >= 8) {
+                return new Date().getFullYear().toString() + "-" + (new Date().getFullYear()+1).toString();
+            }
+            return (new Date().getFullYear()-1).toString() + "-" + new Date().getFullYear().toString();
+        }
+
         function write_to_firebase() {
-            document.getElementById("result").innerHTML = "The function fun() is triggered !"; 
-            const myRef = ref(database, 'Apollo 9662/' + new Date());
+            var currISOString = new Date().toISOString()
+            currISOString = currISOString.substring(0, currISOString.indexOf(".")).replace("T", " ")
+            const myRef = ref(database, get_year_range() + '/' + document.getElementById("teamNameInput").value + '/' + currISOString);
             set(myRef, {score: 4});
+            document.getElementById("teamNameInput").value = ""
         }
 
         sendButton.addEventListener('click', write_to_firebase)
         </script>
-        <button id="sendButton">clickity</button>
-            <p> 
-                <div id = "result">hello</div> 
-            </p> 
+
+        <button id="sendButton">clickity</button><br>
+        <label for="teamNameInput">Enter team name:</label>
+        <input type="text" id="teamNameInput" name="teamNameInput">
     </body>
  </html>
