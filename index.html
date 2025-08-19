@@ -1,0 +1,41 @@
+ <!DOCTYPE html>
+
+ <head>
+    <style>
+         body {
+            background-image: url("/images/everglow_logo_with_name_black_background.png");
+            background-repeat: no-repeat;
+            background-size: cover;
+            color: #FFFFFF; /* Light text */
+            }
+    </style> 
+ </head>
+
+
+<html>
+    <body>
+        <script type="module">
+            const passwordHash = [16, -21, -25, -78, -24, -118, -123, 106, 55, 4, 43, 80, -6, -43, 62, -18, -104, -64, 72, -16, -22, -60, -113, 63, 98, -66, -79, -46, 74, -86, 85, -16]
+
+            function SHA_256(input) {
+                return crypto.subtle.digest("SHA-256", base64ToInt8Array(input)).then(
+                    (hashBuffer) => {
+                        const hashArray = Array.from(new Int8Array(hashBuffer))
+                        return hashArray
+                    }
+                )
+            }
+
+            function moveToScoutingForm() {
+                let inputtedPassword = prompt("Please enter the password: ")
+                if (inputtedPassword != null && inputtedPassword != "") {
+                    location.href = '/scouting_form.html?password=' + inputtedPassword
+                }
+            }
+
+            document.getElementById("scouting_form_button").addEventListener("click", moveToScoutingForm)
+        </script>
+        <button id="scouting_form_button">FTC Scouting Form</button><br>
+        <button onclick="location.href = 'about_us.html';" id="about_us_button">About Us</button><br>
+    </body>
+</html>

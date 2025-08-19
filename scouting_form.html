@@ -1,0 +1,299 @@
+ <!DOCTYPE html>
+
+ <head>
+    <style>
+         body {
+            background-image: url("/images/everglow_logo_with_name_black_background.png");
+            background-repeat: no-repeat;
+            background-size: cover;
+            color: #FFFFFF; /* Light text */
+            }
+    </style> 
+ </head>
+
+ <html>
+     <body>
+        <!-- SheetJS library -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+        <script type="module">
+            // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-analytics.js";
+        import { getDatabase, ref, set, child, get } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+        
+
+        function arraysEqual(arr1, arr2) {
+            if (arr1.length !== arr2.length) {
+                return false;
+            }
+            return arr1.every((value, index) => value == arr2[index]);
+        }
+
+        function getParams() {
+            var idx = document.URL.indexOf('?');
+            var params = new Array();
+            if (idx != -1) {
+                var pairs = document.URL.substring(idx+1, document.URL.length).split('&');
+                for (var i=0; i<pairs.length; i++) {
+                    var nameVal = pairs[i].split('=');
+                    params[nameVal[0]] = nameVal[1];
+                }
+            }
+            return params;
+        }
+
+        const params = getParams()
+
+        
+        function base64ToInt8Array(base64String) {
+            base64String += "=".repeat((4 - base64String.length % 4) % 4)
+            // 1. Decode the Base64 string into a binary string
+            //    atob() treats the input as Base64 and returns a string where each character's
+            //    Unicode value corresponds to the byte value of the original binary data.
+            const binaryString = atob(base64String);
+
+            // 2. Create a int8Array with the same length as the binary string
+            const int8Array = new Int8Array(binaryString.length);
+            
+            // 3. Populate the int8Array by iterating through the binary string
+            //    and getting the character code (byte value) of each character.
+            for (let i = 0; i < binaryString.length; i++) {
+                int8Array[i] = binaryString.charCodeAt(i);
+            }
+            
+            return int8Array;
+        }
+        
+        const encryptedApiKey = "j7imVG6yXcamt9ZS6hYqQxdGZVXmg5C6zlaiOhAFqeujirnZo1itlbimeVcykIll2zgc1vAKiBQXcGM1Ia9wM4eEYJSdb9qGlRaQYWxNkSf6ds0="
+        const passwordHash = [16, -21, -25, -78, -24, -118, -123, 106, 55, 4, 43, 80, -6, -43, 62, -18, -104, -64, 72, -16, -22, -60, -113, 63, 98, -66, -79, -46, 74, -86, 85, -16]
+        
+        const ITERATIONS = 100_000;
+        const KEY_LENGTH = 256;
+        const IV_LENGTH = 12;
+        const TAG_LENGTH = 16;
+        
+        async function decryptApiKey(password) {
+            var combined = base64ToInt8Array(encryptedApiKey)
+            
+            var salt, iv, encrypted
+            
+            salt = combined.slice(0, 16)
+            iv = combined.slice(16, 16 + IV_LENGTH)
+            encrypted = combined.slice(16 + IV_LENGTH, combined.length)
+            
+            const passwordBuffer = new TextEncoder().encode(password)
+            
+            const passwordKey = await crypto.subtle.importKey(
+                "raw",
+                passwordBuffer,
+                "PBKDF2",
+                false,
+                ["deriveKey"]
+            )
+            
+            const derivedKey = await crypto.subtle.deriveKey(
+                {
+                    name: "PBKDF2",
+                    salt: salt,
+                    iterations: ITERATIONS,
+                    hash: "SHA-256"
+                },
+                passwordKey,
+                {
+                    name: "AES-GCM",
+                    length: 256
+                },
+                false,
+                ["decrypt"]
+            )
+            
+            const decrypted = await crypto.subtle.decrypt(
+                {
+                    name: "AES-GCM",
+                    iv: iv
+                },
+                derivedKey,
+                encrypted
+            )
+
+            return new TextDecoder().decode(decrypted)
+        }
+        
+        
+        
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        var firebaseConfig = {
+            apiKey: "",
+            
+            authDomain: "everglowftcscoutingdatabase.firebaseapp.com",
+            
+            projectId: "everglowftcscoutingdatabase",
+            
+            storageBucket: "everglowftcscoutingdatabase.firebasestorage.app",
+            
+            messagingSenderId: "198175864321",
+            
+            appId: "1:198175864321:web:7288ae6a3d5f21ba2e3200",
+            
+            measurementId: "G-N22KCE322T",
+            
+            databaseURL: "https://everglowftcscoutingdatabase-default-rtdb.europe-west1.firebasedatabase.app"
+            
+        };
+        
+        // Initialize Firebase
+        var app
+        var database
+        
+        const sendButton = document.getElementById("sendButton");
+        const downloadButton = document.getElementById("downloadScoutingDataButton");
+        const yearRangeSelect = document.getElementById("yearRangeSelect");
+        
+        function populate_year_range_select() {
+            const myRef = ref(database, "/")
+            
+            get(myRef).then(snapshot => {
+                const allYears = snapshot.val()
+                for (const yearIndex in Object.keys(allYears)) {
+                    const currYearRange = Object.keys(allYears)[yearIndex]
+                    const option = document.createElement("option")
+                    option.value = currYearRange
+                    option.textContent = currYearRange
+                    yearRangeSelect.appendChild(option)
+                }
+            })
+        }
+        
+        
+        function get_year_range() {
+            if (new Date().getMonth() >= 8) {
+                return new Date().getFullYear().toString() + "-" + (new Date().getFullYear()+1).toString();
+            }
+            return (new Date().getFullYear()-1).toString() + "-" + new Date().getFullYear().toString();
+        }
+        
+        function write_to_firebase() {
+            var currISOString = new Date().toISOString()
+            currISOString = currISOString.substring(0, currISOString.indexOf(".")).replace("T", " ")
+            const myRef = ref(database, get_year_range() + '/' + document.getElementById("teamNameInput").value + '/' + currISOString);
+            set(myRef, {score: 4});
+            document.getElementById("teamNameInput").value = ""
+        }
+        
+        function fetch_from_firebase(year_range) {
+            const myRef = ref(database, "/");
+            
+            var resultArray = []
+            
+            
+            const interperters = {
+                "2024-2025" : (snapshot) => {
+                    resultArray = [["Team Name", "Date of Entry", "Autonomous Net Samples", "Autnomous Low Samples", "Autonomous High Samples", "Autonomous Low Specimens", "Autonmous High Specimens", "Opmode Net Samples", "Opmode Low Samples", "Opmode High Samples", "Opmode Low Specimens", "Opmode High Specimens", "Opmode Ascent"]];
+                    if (snapshot.exists()) {
+                        const allTeams = snapshot.val()
+                        const allTeamsKeys = Object.keys(allTeams)
+                        for (const teamIndex in allTeamsKeys) {
+                            const team = allTeamsKeys[teamIndex]
+                            const allTeamTimestamps = Object.keys(allTeams[team])
+                            for (const timestampIndex in allTeamTimestamps) {
+                                var timestamp = allTeamTimestamps[timestampIndex]
+                                var autoValues = allTeams[team][timestamp]["autonomous"]
+                                var opModeValues = allTeams[team][timestamp]["opMode"]
+                                resultArray.push([team, timestamp, autoValues["netSamples"], autoValues["lowBasketSamples"], autoValues["highBasketSamples"], autoValues["lowSpecimens"], autoValues["highSpecimens"], opModeValues["netSamples"], opModeValues["lowBasketSamples"], opModeValues["highBasketSamples"], opModeValues["lowSpecimens"], opModeValues["highSpecimens"], opModeValues["ascentScore"]])
+                            }
+                        }
+                    }
+                    return resultArray
+                },
+            }
+            
+            
+            return get(child(myRef, year_range)).then(interperters[year_range])
+        }
+        
+        // Main function - takes 2D array and downloads as Excel
+        function downloadExcelFromArray(data, filename = 'data.xlsx') {
+            // Create workbook and worksheet
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            
+            // Add worksheet to workbook
+            XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+            
+            // Generate and download Excel file
+            XLSX.writeFile(wb, filename);
+        }
+        
+        async function SHA_256(input) {
+            return await crypto.subtle.digest("SHA-256", base64ToInt8Array(input)).then(
+                (hashBuffer) => {
+                    const hashArray = Array.from(new Int8Array(hashBuffer))
+                    return hashArray
+                }
+            )
+        }
+        
+        
+        async function validateFirebaseConfig() {
+            if (arraysEqual(await SHA_256(inputtedPassword), passwordHash)) {
+                if (app == null || database == null) {
+                    firebaseConfig.apiKey = await decryptApiKey(inputtedPassword)
+                    app = initializeApp(firebaseConfig)
+                    database = getDatabase(app)
+                }
+                return true
+            }
+            else {
+                alert("Bad Password!")
+                location.href = "/index.html"
+                return false
+            }
+        }
+        
+        function getPassword() {
+            if ("password" in params) {
+                return params["password"]
+            }
+            else {
+                let inputtedPassword = prompt("Please enter the password: ")
+                if (inputtedPassword != null && inputtedPassword != "") {
+                    return inputtedPassword
+                }
+            }
+        }
+        
+        const inputtedPassword = getPassword()
+            
+            if (await validateFirebaseConfig()) {
+                populate_year_range_select()
+            
+            
+
+
+            sendButton.addEventListener('click', async () => {
+                if (await validateFirebaseConfig()) {
+                    write_to_firebase()
+                }
+            })
+
+            downloadButton.addEventListener('click', async () => {
+                if (await validateFirebaseConfig()) {
+                    var year_range = yearRangeSelect.value
+                    fetch_from_firebase(year_range).then(data => {
+                        downloadExcelFromArray(data, "scouting_data_" + year_range + ".xlsx")
+                    })
+                }
+            })
+        }
+        </script>
+
+        <select id="yearRangeSelect"></select><br>
+        <button id="downloadScoutingDataButton">Download Data</button><br><br>
+        <button id="sendButton">Send Scouting</button><br>
+        <label for="teamNameInput">Enter team name:</label>
+        <input type="text" id="teamNameInput" name="teamNameInput">
+    </body>
+ </html>
