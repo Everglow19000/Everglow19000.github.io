@@ -7,13 +7,14 @@
             color: #f0f0f0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
-            padding: 30px;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
-        /* Global Form Styling */
+        /* Inputs and dropdowns */
         input[type="text"],
         select {
-            padding: 10px;
+            padding: 12px;
             font-size: 16px;
             border-radius: 6px;
             border: none;
@@ -21,39 +22,44 @@
             margin: 10px 0;
             background-color: rgba(255, 255, 255, 0.1);
             color: #fff;
-            width: 250px;
+            width: 100%;
+            max-width: 300px;
+            box-sizing: border-box;
         }
 
         /* Buttons */
         button {
-            padding: 10px 20px;
+            padding: 12px 20px;
             font-size: 16px;
             background-color: #3e5ce4;
             color: white;
             border: none;
             border-radius: 6px;
-            margin: 10px 5px;
+            margin: 10px 5px 20px 0;
             cursor: pointer;
             transition: background-color 0.3s ease;
+            width: 100%;
+            max-width: 300px;
         }
 
         button:hover {
             background-color: #2b44af;
         }
 
-        /* Section Titles */
+        /* Titles */
         h1 {
             color: #ffffff;
             border-bottom: 2px solid #444;
             padding-bottom: 5px;
             margin-top: 40px;
+            font-size: 1.8em;
         }
 
-        /* Container for modules */
+        /* Modules layout */
         .modules-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
             margin-top: 20px;
         }
 
@@ -61,7 +67,7 @@
         .module {
             background-color: rgba(20, 20, 100, 0.85);
             border-radius: 10px;
-            padding: 20px;
+            padding: 16px;
             text-align: center;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
             transition: transform 0.2s ease, background-color 0.2s ease;
@@ -72,7 +78,7 @@
             background-color: rgba(40, 40, 140, 0.9);
         }
 
-        /* Module Titles */
+        /* Module title */
         .module-title {
             font-size: 18px;
             font-weight: bold;
@@ -95,16 +101,15 @@
         }
 
         .counter-btn {
-            font-size: 20px;
-            width: 40px;
-            height: 40px;
+            font-size: 24px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             border: none;
             background-color: #5c7cfa;
             color: white;
             cursor: pointer;
             transition: background-color 0.2s ease;
-            text-align: center
         }
 
         .counter-btn:hover {
@@ -128,14 +133,46 @@
             color: #ffe873;
         }
 
-        /* Select dropdown */
+        /* Dropdown menu */
         #yearRangeSelect {
             background-color: rgba(255, 255, 255, 0.15);
             color: #fff;
             border: none;
             padding: 10px;
-            margin-bottom: 10px;
             border-radius: 6px;
+            width: 100%;
+            max-width: 300px;
+            margin-bottom: 10px;
+        }
+
+        /* Responsive tweaks */
+        @media (max-width: 600px) {
+            body {
+                padding: 15px;
+            }
+
+            .modules-container {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+
+            button, input[type="text"], select {
+                font-size: 16px;
+                width: 100%;
+            }
+
+            .counter-display {
+                font-size: 28px;
+            }
+
+            .counter-btn {
+                font-size: 20px;
+                width: 40px;
+                height: 40px;
+            }
         }
     </style>
 </head>
