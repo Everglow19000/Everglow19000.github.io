@@ -3,23 +3,139 @@
 <head>
     <style>
         body {
-            background-image: url("/images/everglow_logo_with_name_black_background.png");
-            background-repeat: no-repeat;
-            background-size: cover;
-            color: #FFFFFF;
-            /* Light text */
+            background-color: black;
+            color: #f0f0f0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 30px;
         }
 
+        /* Global Form Styling */
+        input[type="text"],
+        select {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 6px;
+            border: none;
+            outline: none;
+            margin: 10px 0;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            width: 250px;
+        }
+
+        /* Buttons */
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #3e5ce4;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            margin: 10px 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #2b44af;
+        }
+
+        /* Section Titles */
+        h1 {
+            color: #ffffff;
+            border-bottom: 2px solid #444;
+            padding-bottom: 5px;
+            margin-top: 40px;
+        }
+
+        /* Container for modules */
         .modules-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 25px;
-            margin-top: 30px;
+            margin-top: 20px;
         }
 
+        /* Individual module card */
         .module {
-            background-color: rgba(32, 32, 151, 0.9);
+            background-color: rgba(20, 20, 100, 0.85);
+            border-radius: 10px;
+            padding: 20px;
             text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s ease, background-color 0.2s ease;
+        }
+
+        .module:hover {
+            transform: scale(1.02);
+            background-color: rgba(40, 40, 140, 0.9);
+        }
+
+        /* Module Titles */
+        .module-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #fff;
+        }
+
+        /* Counter display */
+        .counter-display {
+            font-size: 32px;
+            margin: 10px 0;
+            color: #ffdf6b;
+        }
+
+        /* Counter buttons */
+        .counter-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .counter-btn {
+            font-size: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background-color: #5c7cfa;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            text-align: center
+        }
+
+        .counter-btn:hover {
+            background-color: #4a6edb;
+        }
+
+        /* Radio Module Styling */
+        .radio input[type="radio"] {
+            margin-right: 8px;
+        }
+
+        .radio label {
+            font-size: 15px;
+            display: block;
+            margin-bottom: 6px;
+            cursor: pointer;
+        }
+
+        .radio input[type="radio"]:checked + label {
+            font-weight: bold;
+            color: #ffe873;
+        }
+
+        /* Select dropdown */
+        #yearRangeSelect {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            border: none;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 6px;
         }
     </style>
 </head>
