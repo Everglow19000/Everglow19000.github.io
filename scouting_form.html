@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
-            background-color: black;
+            background-color: #000;
             color: #f0f0f0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
@@ -12,20 +12,27 @@
             box-sizing: border-box;
         }
 
-        /* Inputs and dropdowns */
+        /* Form Inputs */
         input[type="text"],
-        select {
+        select,
+        #yearRangeSelect {
             padding: 12px;
             font-size: 16px;
             border-radius: 6px;
             border: none;
             outline: none;
             margin: 10px 0;
-            background-color: rgba(255, 255, 255, 0.1);
-            color: #fff;
+            background-color: rgba(255, 255, 255, 0.08);
+            color: #ffffff;
             width: 100%;
             max-width: 300px;
             box-sizing: border-box;
+            transition: background-color 0.2s ease;
+        }
+
+        input[type="text"]:focus,
+        select:focus {
+            background-color: rgba(255, 255, 255, 0.15);
         }
 
         /* Buttons */
@@ -47,7 +54,7 @@
             background-color: #2b44af;
         }
 
-        /* Titles */
+        /* Headers */
         h1 {
             color: #ffffff;
             border-bottom: 2px solid #444;
@@ -56,7 +63,7 @@
             font-size: 1.8em;
         }
 
-        /* Modules layout */
+        /* Layout */
         .modules-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -64,7 +71,7 @@
             margin-top: 20px;
         }
 
-        /* Individual module card */
+        /* Module Cards */
         .module {
             background-color: rgba(20, 20, 100, 0.85);
             border-radius: 10px;
@@ -79,26 +86,33 @@
             background-color: rgba(40, 40, 140, 0.9);
         }
 
-        /* Module title */
         .module-title {
             font-size: 18px;
             font-weight: bold;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             color: #fff;
         }
 
-        /* Counter display */
+        /* Counter Display */
         .counter-display {
             font-size: 32px;
             margin: 10px 0;
             color: #ffdf6b;
         }
 
-        /* Counter buttons */
+        /* Score Display */
+        .score-display {
+            font-size: 16px;
+            margin-bottom: 5px;
+            color: #a0d8ff;
+        }
+
+        /* Counter Buttons */
         .counter-buttons {
             display: flex;
             justify-content: center;
             gap: 15px;
+            margin-top: 8px;
         }
 
         .counter-btn {
@@ -117,13 +131,21 @@
             background-color: #4a6edb;
         }
 
-        /* Radio Module Styling */
-        .radio input[type="radio"] {
+        /* Radio / Switch Modules */
+        .radio,
+        .switch {
+            text-align: left;
+            font-size: 15px;
+            padding: 10px;
+        }
+
+        .radio input[type="radio"],
+        .switch input[type="checkbox"] {
             margin-right: 8px;
+            cursor: pointer;
         }
 
         .radio label {
-            font-size: 15px;
             display: block;
             margin-bottom: 6px;
             cursor: pointer;
@@ -134,19 +156,124 @@
             color: #ffe873;
         }
 
-        /* Dropdown menu */
+        .switch .slider {
+            display: inline-block;
+            font-size: 16px;
+            color: #fff;
+            margin-left: 8px;
+        }
+
+        /* Total Score Display */
+        #total-score-display {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ffe873;
+            margin-top: 20px;
+        }
+
+        /* Dropdown Styling */
         #yearRangeSelect {
             background-color: rgba(255, 255, 255, 0.15);
             color: #fff;
-            border: none;
             padding: 10px;
             border-radius: 6px;
-            width: 100%;
-            max-width: 300px;
+            border: none;
             margin-bottom: 10px;
         }
 
-        /* Responsive tweaks */
+        /* Toggle Switch Styling */
+        .switch {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+        }
+
+        .switch input[type="checkbox"] {
+            appearance: none;
+            width: 50px;
+            height: 26px;
+            background: #888;
+            border-radius: 15px;
+            position: relative;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .switch input[type="checkbox"]::before {
+            content: "";
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            top: 2px;
+            left: 2px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+        }
+
+        .switch input[type="checkbox"]:checked {
+            background: #4caf50;
+        }
+
+        .switch input[type="checkbox"]:checked::before {
+            transform: translateX(24px);
+        }
+
+        .switch .slider {
+            font-size: 16px;
+            color: #fff;
+        }
+
+        /* Pretty Radio Buttons */
+        .radio input[type="radio"] {
+            display: none;
+        }
+
+        .radio label {
+            display: flex;
+            align-items: center;
+            font-size: 15px;
+            margin-bottom: 8px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #888;
+            background-color: rgba(255, 255, 255, 0.05);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            color: #f0f0f0;
+            position: relative;
+            padding-left: 36px;
+        }
+
+        .radio label::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid #ccc;
+            background-color: transparent;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .radio input[type="radio"]:checked + label::before {
+            background-color: #ffe873;
+            border-color: #ffe873;
+        }
+
+        .radio input[type="radio"]:checked + label {
+            font-weight: bold;
+            background-color: rgba(255, 232, 115, 0.1);
+            border-color: #ffe873;
+            color: #ffe873;
+        }
+
+
+        /* Responsive */
         @media (max-width: 600px) {
             body {
                 padding: 15px;
@@ -163,8 +290,8 @@
             button,
             input[type="text"],
             select {
-                font-size: 19px;
-                padding: 16px;
+                font-size: 18px;
+                padding: 14px;
                 width: 100%;
             }
 
@@ -173,13 +300,17 @@
             }
 
             .counter-btn {
-                font-size: 24px;
-                width: 56px;
-                height: 56px;
+                font-size: 22px;
+                width: 52px;
+                height: 52px;
             }
 
             .radio label {
                 font-size: 16px;
+            }
+
+            .module-title {
+                font-size: 17px;
             }
         }
     </style>
@@ -241,7 +372,7 @@
             return int8Array;
         }
 
-        const encryptedApiKey = "j7imVG6yXcamt9ZS6hYqQxdGZVXmg5C6zlaiOhAFqeujirnZo1itlbimeVcykIll2zgc1vAKiBQXcGM1Ia9wM4eEYJSdb9qGlRaQYWxNkSf6ds0="
+        const firebaseEncryptedApiKey = "j7imVG6yXcamt9ZS6hYqQxdGZVXmg5C6zlaiOhAFqeujirnZo1itlbimeVcykIll2zgc1vAKiBQXcGM1Ia9wM4eEYJSdb9qGlRaQYWxNkSf6ds0="
         const passwordHash = [16, -21, -25, -78, -24, -118, -123, 106, 55, 4, 43, 80, -6, -43, 62, -18, -104, -64, 72, -16, -22, -60, -113, 63, 98, -66, -79, -46, 74, -86, 85, -16]
 
         const ITERATIONS = 100_000;
@@ -250,7 +381,7 @@
         const TAG_LENGTH = 16;
 
         async function decryptApiKey(password) {
-            var combined = base64ToInt8Array(encryptedApiKey)
+            var combined = base64ToInt8Array(firebaseEncryptedApiKey)
 
             var salt, iv, encrypted
 
@@ -360,20 +491,20 @@
 
             set(myRef, {
                 "autonomous": {
-                    "netSamples": counters.get("autonomous").get("Net Samples"),
-                    "lowBasketSamples": counters.get("autonomous").get("Low Basket Samples"),
-                    "highBasketSamples": counters.get("autonomous").get("High Basket Samples"),
-                    "lowSpecimens": counters.get("autonomous").get("Low Specimens"),
-                    "highSpecimens": counters.get("autonomous").get("High Specimens"),
-                    "ascentScore": 0
+                    "classifiedArtifacts": counters.get("autonomous").get("Classified Artifacts").toString(),
+                    "overflowArtifacts": counters.get("autonomous").get("Overflow Artifacts").toString(),
+                    "depotArtifacts": "0",
+                    "artifactsMatchingPattern": counters.get("autonomous").get("Artifacts Matching Pattern").toString(),
+                    "didLeave": counters.get("autonomous").get("Did Leave").toString(),
+                    "baseReturn": "None"
                 },
                 "opMode": {
-                    "netSamples": counters.get("opMode").get("Net Samples"),
-                    "lowBasketSamples": counters.get("opMode").get("Low Basket Samples"),
-                    "highBasketSamples": counters.get("opMode").get("High Basket Samples"),
-                    "lowSpecimens": counters.get("opMode").get("Low Specimens"),
-                    "highSpecimens": counters.get("opMode").get("High Specimens"),
-                    "ascentScore": getSelectedRadioValueAsNumber()
+                    "classifiedArtifacts": counters.get("opMode").get("Classified Artifacts").toString(),
+                    "overflowArtifacts": counters.get("opMode").get("Overflow Artifacts").toString(),
+                    "depotArtifacts": counters.get("opMode").get("Depot Artifacts").toString(),
+                    "artifactsMatchingPattern": counters.get("opMode").get("Artifacts Matching Pattern").toString(),
+                    "didLeave": "false",
+                    "baseReturn": counters.get("opMode").get("Base Return").toString()
                 }
             })
 
@@ -382,6 +513,7 @@
                 ["autonomous", new Map()],
                 ["opMode", new Map()]
             ])
+            totalScore = 0
             initializeModules()
             document.getElementById("teamNameInput").value = ""
         }
@@ -406,6 +538,24 @@
                                 var autoValues = allTeams[team][timestamp]["autonomous"]
                                 var opModeValues = allTeams[team][timestamp]["opMode"]
                                 resultArray.push([team, timestamp, autoValues["netSamples"], autoValues["lowBasketSamples"], autoValues["highBasketSamples"], autoValues["lowSpecimens"], autoValues["highSpecimens"], opModeValues["netSamples"], opModeValues["lowBasketSamples"], opModeValues["highBasketSamples"], opModeValues["lowSpecimens"], opModeValues["highSpecimens"], opModeValues["ascentScore"]])
+                            }
+                        }
+                    }
+                    return resultArray
+                },
+                "2025-2026": (snapshot) => {
+                    resultArray = [["Team Name", "Date of Entry", "Autonomous Classified Artifacts", "Autonomous Overflow Artifacts", "Autonomous Artifacts Matching Pattern", "Autonomous Did Leave", "Teleop Classified Artifacts", "Teleop Overflow Artifacts", "Teleop Depot Artifacts", "Teleop Artifacts Matching Pattern", "Teleop Base Return"]];
+                    if (snapshot.exists()) {
+                        const allTeams = snapshot.val()
+                        const allTeamsKeys = Object.keys(allTeams)
+                        for (const teamIndex in allTeamsKeys) {
+                            const team = allTeamsKeys[teamIndex]
+                            const allTeamTimestamps = Object.keys(allTeams[team])
+                            for (const timestampIndex in allTeamTimestamps) {
+                                var timestamp = allTeamTimestamps[timestampIndex]
+                                var autoValues = allTeams[team][timestamp]["autonomous"]
+                                var opModeValues = allTeams[team][timestamp]["opMode"]
+                                resultArray.push([team, timestamp, autoValues["classifiedArtifacts"], autoValues["overflowArtifacts"], autoValues["artifactsMatchingPattern"], autoValues["didLeave"], opModeValues["classifiedArtifacts"], opModeValues["overflowArtifacts"], opModeValues["depotArtifacts"], opModeValues["artifactsMatchingPattern"], opModeValues["baseReturn"]])
                             }
                         }
                     }
@@ -498,10 +648,61 @@
             ["opMode", new Map()]
         ])
 
-        let autonomousCounterModules = ["Net Samples", "Low Basket Samples", "High Basket Samples", "Low Specimens", "High Specimens"]
-        let opModeCounterModules = ["Net Samples", "Low Basket Samples", "High Basket Samples", "Low Specimens", "High Specimens"]
+        let autonomousCounterModules = ["Classified Artifacts", "Overflow Artifacts", "Artifacts Matching Pattern"]
+        let opModeCounterModules = ["Classified Artifacts", "Overflow Artifacts", "Depot Artifacts", "Artifacts Matching Pattern"]
 
+        const everythingScoreStringProcessor = function(score) {
+            return `Score: ${score}p`
+        }
 
+        
+        const classifiedArtifactsScoreCalculator = (count) => 3*count
+        const overflowAndDepotArtifactsScoreCalculator = (count) => 1*count
+        const artifactsMatchingPatternScoreCalculator = (count) => 2*count
+        const didLeaveScoreCalculator = function(value) {
+            if (value) {
+                return 3
+            }
+            else {
+                return 0
+            }
+        }
+        const baseReturnScoreCalculator = function(value) {
+            if (value == "None") {
+                return 0
+            }
+            else if (value == "Partial") {
+                return 5
+            }
+            else if (value == "Full" || value == "Bonus") {
+                return 10
+            }
+            return 0
+        }
+        
+        let calculators = new Map([
+            ["autonomous", new Map([
+                ["classified-artifacts", classifiedArtifactsScoreCalculator],
+                ["overflow-artifacts", overflowAndDepotArtifactsScoreCalculator],
+                ["artifacts-matching-pattern", artifactsMatchingPatternScoreCalculator],
+                ["did-leave", didLeaveScoreCalculator],
+            ])],
+            ["opMode", new Map([
+                ["classified-artifacts", classifiedArtifactsScoreCalculator],
+                ["overflow-artifacts", overflowAndDepotArtifactsScoreCalculator],
+                ["depot-artifacts", overflowAndDepotArtifactsScoreCalculator],
+                ["artifacts-matching-pattern", artifactsMatchingPatternScoreCalculator],
+                ["base-return", baseReturnScoreCalculator],
+            ])]
+        ])
+
+        let baseReturnRadioButtons
+
+        let didLeaveCheckbox
+
+        var totalScoreDisplay = document.getElementById("total-score-display")
+        const totalScoreStringProcessor = (score) => `Total Score: ${score}p`
+        
         function initializeModules() {
             const autonomousModulesContainer = document.getElementById("autonomousModulesContainer")
             const opModeModulesContainer = document.getElementById("opModeModulesContainer")
@@ -512,54 +713,108 @@
             for (var autonomousStat in autonomousCounterModules) {
                 counters.get("autonomous").set(autonomousCounterModules[autonomousStat], 0)
             }
+            counters.get("opMode").set("Base Return", "None")
+            counters.get("autonomous").set("Did Leave", false)
 
             opModeModulesContainer.innerHTML = opModeCounterModules.map(title => `
                     <div class="module counter" id="counter-module-opMode-${sanitizeId(title)}">
                         <div class="module-title">${title}</div>
+                        <div class="score-display" id="score-display-opMode-${(sanitizeId(title))}"">Score: 0p</div>
                         <div class="counter-display" id="counter-opMode-${sanitizeId(title)}">0</div>
                         <div class="counter-buttons">
-                            <button class="counter-btn minus" onclick="updateCounter('opMode-${title}', -1)">−</button>
-                            <button class="counter-btn plus" onclick="updateCounter('opMode-${title}', 1)">+</button>
+                            <button class="counter-btn minus" onclick="updateCounter('opMode-${title}', -1, everythingScoreStringProcessor)">−</button>
+                            <button class="counter-btn plus" onclick="updateCounter('opMode-${title}', 1, everythingScoreStringProcessor)">+</button>
                         </div>
                     </div>
                 `).join("") + `
-                    <div class="module radio" id="radio-module-opMode-ascent-level">
-                        <div class="module-title">Ascent Level</div>
-                        <input type="radio" name="opmode-ascent-level" value="0" id="no-ascent" checked>
-                        <label for="no-ascent">No Ascent (0p)</label><br>
+                    <div class="module radio" id="radio-module-opMode-base-return">
+                        <div class="module-title">Base Return</div>
+                        <input type="radio" name="opmode-base-return" value="None" id="none-return" checked>
+                        <label for="none-return">None (0p)</label><br>
 
-                        <input type="radio" name="opmode-ascent-level" value="3" id="parking">
-                        <label for="parking">Parking (3p)</label><br>
+                        <input type="radio" name="opmode-base-return" value="Partial" id="partial-return">
+                        <label for="partial-return">Partial (5p)</label><br>
 
-                        <input type="radio" name="opmode-ascent-level" value="3" id="first-ascent">
-                        <label for="first-ascent">First Ascent (3p)</label><br>
+                        <input type="radio" name="opmode-base-return" value="Full" id="full-return">
+                        <label for="full-return">Full (10p)</label><br>
 
-                        <input type="radio" name="opmode-ascent-level" value="15" id="second-ascent">
-                        <label for="second-ascent">Second Ascent (15p)</label><br>
-
-                        <input type="radio" name="opmode-ascent-level" value="30" id="third-ascent">
-                        <label for="third-ascent">Third Ascent (30p)</label>
+                        <input type="radio" name="opmode-base-return" value="Bonus" id="bonus-return">
+                        <label for="bonus-return">Bonus (+10p)</label><br>
                     </div>
                 `
 
             autonomousModulesContainer.innerHTML = autonomousCounterModules.map(title => `
                     <div class="module counter" id="counter-module-autonomous-${sanitizeId(title)}">
                         <div class="module-title">${title}</div>
+                        <div class="score-display" id="score-display-autonomous-${(sanitizeId(title))}"">Score: 0p</div>
                         <div class="counter-display" id="counter-autonomous-${sanitizeId(title)}">0</div>
                         <div class="counter-buttons">
-                            <button class="counter-btn minus" onclick="updateCounter('autonomous-${title}', -1)">−</button>
-                            <button class="counter-btn plus" onclick="updateCounter('autonomous-${title}', 1)">+</button>
+                            <button class="counter-btn minus" onclick="updateCounter('autonomous-${title}', -1, everythingScoreStringProcessor)">−</button>
+                            <button class="counter-btn plus" onclick="updateCounter('autonomous-${title}', 1, everythingScoreStringProcessor)">+</button>
                         </div>
                     </div>
-                `).join("")
+                `).join("") + `
+                        <div class="module switch" id="switch-module-autonomous-did-leave">
+                            <input type="checkbox" id="switch-autonomous-did-leave"/>
+                            <span class="slider">Did Do Leave? (3p)</span>
+                        </div>
+                `
 
+            baseReturnRadioButtons = document.querySelectorAll('input[name="opmode-base-return"]');
+            baseReturnRadioButtons.forEach(
+                radioButton => {
+                    radioButton.addEventListener(
+                        'change', 
+                        function() {
+                            if (this.checked) {
+                                console.log(radioButton)
+                                console.log(this.value)
+                                counters.get("opMode").set("Base Return", this.value)
+                                console.log(counters.get("opMode").get("Base Return"))
+                                updateTotalScoreDisplay()
+                            }
+                        }
+                    )
+                }
+            )
+
+            didLeaveCheckbox = document.getElementById("switch-autonomous-did-leave")
+            didLeaveCheckbox.addEventListener('change', function() {
+                counters.get("autonomous").set("Did Leave", this.checked)
+                updateTotalScoreDisplay()
+            })
+
+        }
+
+
+
+        function updateTotalScoreDisplay() {
+            let totalScore = 0
+
+            counters.forEach(
+                (innerMap, autonomousOrOpMode) => {
+                    innerMap.forEach(
+                        (value, key) => {
+                            console.log(`autoOrOpMode: ${autonomousOrOpMode} | sanitizedId: ${sanitizeId(key)} | value: ${value}`)
+                            console.log(`calculator: ${calculators.get(autonomousOrOpMode).get(sanitizeId(key))}`)
+                            totalScore += calculators.get(autonomousOrOpMode).get(sanitizeId(key))(value)
+                        }
+                    )
+                }
+            );
+
+            if (totalScoreDisplay == null) {
+                totalScoreDisplay = document.getElementById("total-score-display")
+            }
+
+            totalScoreDisplay.textContent = totalScoreStringProcessor(totalScore)
         }
 
         function sanitizeId(title) {
             return title.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
         }
 
-        function updateCounter(nameToUpdate, change) {
+        function updateCounter(nameToUpdate, change, scoreStringProcessor) {
             const prefix = nameToUpdate.substring(0, nameToUpdate.indexOf("-"))
             const title = nameToUpdate.substring(nameToUpdate.indexOf("-") + 1)
             const currentValue = counters.get(prefix).get(title) || 0;
@@ -568,16 +823,11 @@
 
             const counterElement = document.getElementById(`counter-${prefix}-${sanitizeId(title)}`)
             counterElement.textContent = newValue
-        }
 
-        function getSelectedRadioValueAsNumber() {
-            const selectedRadio = document.querySelector('input[name="opmode-ascent-level"]:checked');
-            if (selectedRadio) {
-                const valueAsString = selectedRadio.value;
-                const valueAsNumber = parseInt(valueAsString, 10); // Or parseFloat() for decimals
-                return valueAsNumber;
-            }
-            return null; // No radio button selected
+            const scoreDisplayElement = document.getElementById(`score-display-${prefix}-${sanitizeId(title)}`)
+            scoreDisplayElement.textContent = scoreStringProcessor(calculators.get(prefix).get(sanitizeId(title))(newValue))
+
+            updateTotalScoreDisplay()
         }
     </script>
 
@@ -587,6 +837,7 @@
     <button id="sendButton">Send Scouting</button><br>
     <label for="teamNameInput">Enter team name:</label>
     <input type="text" id="teamNameInput" name="teamNameInput">
+    <p id="total-score-display">Total Score: 0p</p>
     <h1>Autonomous</h1><br>
     <div class="modules-container" id="autonomousModulesContainer"></div><br><br>
     <h1>OpMode</h1><br>
