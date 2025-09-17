@@ -475,10 +475,11 @@
 
 
         function get_year_range() {
-            if (new Date().getMonth() >= 8) {
-                return new Date().getFullYear().toString() + "-" + (new Date().getFullYear() + 1).toString();
-            }
-            return (new Date().getFullYear() - 1).toString() + "-" + new Date().getFullYear().toString();
+            return "2025-2026"
+        }
+
+        function get_year() {
+            return "2025"
         }
 
         function write_to_firebase() {
@@ -615,6 +616,46 @@
                 if (inputtedPassword != null && inputtedPassword != "") {
                     return inputtedPassword
                 }
+            }
+        }
+
+        function getFtcApiAuthorizationKey() {
+            return "something"
+        }
+
+        async function getCountryEventMapFromFtcApi() {
+            let outputMap = new Map()
+
+            let url = `https://ftc-api.firstinspires.org/v2.0/${get_year()}/events`
+            let headers = {
+                "Authorization": `Basic ${getFtcApiAuthorizationKey()}`,
+                "accept": "application/json"
+            }
+
+            try {
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: headers
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log(data)
+                let eventsList = data.get("events")
+                let test = [1, 2, 3]
+                for (let i = 0; i < eventsList.length; i++) {
+                    if (!outputMap.has(eventsList[i].get("country"))) {
+                        outputMap.set(eventsList[i].get("country"), [[eventsList[i].get("code"), eventsList[i].get("name")]])
+                    }
+                    else {
+                        outputMap.get(eventsList[i].get("country")).push([eventsList[i].get("code"), eventsList[i].get("name")])
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
             }
         }
 
