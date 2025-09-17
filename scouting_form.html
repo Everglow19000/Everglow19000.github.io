@@ -321,6 +321,7 @@
 <body>
     <!-- SheetJS library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="./api_keys_encryption.js"></script>
     <script type="module">
         // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
@@ -351,81 +352,6 @@
         }
 
         const params = getParams()
-
-
-        function base64ToInt8Array(base64String) {
-            base64String += "=".repeat((4 - base64String.length % 4) % 4)
-            // 1. Decode the Base64 string into a binary string
-            //    atob() treats the input as Base64 and returns a string where each character's
-            //    Unicode value corresponds to the byte value of the original binary data.
-            const binaryString = atob(base64String);
-
-            // 2. Create a int8Array with the same length as the binary string
-            const int8Array = new Int8Array(binaryString.length);
-
-            // 3. Populate the int8Array by iterating through the binary string
-            //    and getting the character code (byte value) of each character.
-            for (let i = 0; i < binaryString.length; i++) {
-                int8Array[i] = binaryString.charCodeAt(i);
-            }
-
-            return int8Array;
-        }
-
-        const firebaseEncryptedApiKey = "j7imVG6yXcamt9ZS6hYqQxdGZVXmg5C6zlaiOhAFqeujirnZo1itlbimeVcykIll2zgc1vAKiBQXcGM1Ia9wM4eEYJSdb9qGlRaQYWxNkSf6ds0="
-        const passwordHash = [16, -21, -25, -78, -24, -118, -123, 106, 55, 4, 43, 80, -6, -43, 62, -18, -104, -64, 72, -16, -22, -60, -113, 63, 98, -66, -79, -46, 74, -86, 85, -16]
-
-        const ITERATIONS = 100_000;
-        const KEY_LENGTH = 256;
-        const IV_LENGTH = 12;
-        const TAG_LENGTH = 16;
-
-        async function decryptApiKey(password) {
-            var combined = base64ToInt8Array(firebaseEncryptedApiKey)
-
-            var salt, iv, encrypted
-
-            salt = combined.slice(0, 16)
-            iv = combined.slice(16, 16 + IV_LENGTH)
-            encrypted = combined.slice(16 + IV_LENGTH, combined.length)
-
-            const passwordBuffer = new TextEncoder().encode(password)
-
-            const passwordKey = await crypto.subtle.importKey(
-                "raw",
-                passwordBuffer,
-                "PBKDF2",
-                false,
-                ["deriveKey"]
-            )
-
-            const derivedKey = await crypto.subtle.deriveKey(
-                {
-                    name: "PBKDF2",
-                    salt: salt,
-                    iterations: ITERATIONS,
-                    hash: "SHA-256"
-                },
-                passwordKey,
-                {
-                    name: "AES-GCM",
-                    length: 256
-                },
-                false,
-                ["decrypt"]
-            )
-
-            const decrypted = await crypto.subtle.decrypt(
-                {
-                    name: "AES-GCM",
-                    iv: iv
-                },
-                derivedKey,
-                encrypted
-            )
-
-            return new TextDecoder().decode(decrypted)
-        }
 
 
 
@@ -581,20 +507,14 @@
             XLSX.writeFile(wb, filename);
         }
 
-        async function SHA_256(input) {
-            return await crypto.subtle.digest("SHA-256", base64ToInt8Array(input)).then(
-                (hashBuffer) => {
-                    const hashArray = Array.from(new Int8Array(hashBuffer))
-                    return hashArray
-                }
-            )
-        }
+        const firebaseEncryptedApiKey = "j7imVG6yXcamt9ZS6hYqQxdGZVXmg5C6zlaiOhAFqeujirnZo1itlbimeVcykIll2zgc1vAKiBQXcGM1Ia9wM4eEYJSdb9qGlRaQYWxNkSf6ds0="
+        const passwordHash = [16, -21, -25, -78, -24, -118, -123, 106, 55, 4, 43, 80, -6, -43, 62, -18, -104, -64, 72, -16, -22, -60, -113, 63, 98, -66, -79, -46, 74, -86, 85, -16]
 
 
-        async function validateFirebaseConfig() {
+        async function validatePasswordAndCreateApiKeys() {
             if (arraysEqual(await SHA_256(inputtedPassword), passwordHash)) {
                 if (app == null || database == null) {
-                    firebaseConfig.apiKey = await decryptApiKey(inputtedPassword)
+                    firebaseConfig.apiKey = await decryptApiKey(inputtedPassword, firebaseEncryptedApiKey)
                     app = initializeApp(firebaseConfig)
                     database = getDatabase(app)
                 }
@@ -644,16 +564,17 @@
 
                 const data = await response.json();
                 console.log(data)
-                let eventsList = data.get("events")
+                let eventsList = data["events"]
                 let test = [1, 2, 3]
                 for (let i = 0; i < eventsList.length; i++) {
-                    if (!outputMap.has(eventsList[i].get("country"))) {
-                        outputMap.set(eventsList[i].get("country"), [[eventsList[i].get("code"), eventsList[i].get("name")]])
+                    if (!outputMap.has(eventsList[i]["country"])) {
+                        outputMap.set(eventsList[i]["country"], [[eventsList[i]["code"], eventsList[i]["name"]]])
                     }
                     else {
-                        outputMap.get(eventsList[i].get("country")).push([eventsList[i].get("code"), eventsList[i].get("name")])
+                        outputMap.get(eventsList[i]["country"]).push([eventsList[i]["code"], eventsList[i]["name"]])
                     }
                 }
+                return outputMap
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
@@ -661,17 +582,17 @@
 
         const inputtedPassword = getPassword()
 
-        if (await validateFirebaseConfig()) {
+        if (await validatePasswordAndCreateApiKeys()) {
             populate_year_range_select()
 
             sendButton.addEventListener('click', async () => {
-                if (await validateFirebaseConfig()) {
+                if (await validatePasswordAndCreateApiKeys()) {
                     write_to_firebase()
                 }
             })
 
             downloadButton.addEventListener('click', async () => {
-                if (await validateFirebaseConfig()) {
+                if (await validatePasswordAndCreateApiKeys()) {
                     var year_range = yearRangeSelect.value
                     fetch_from_firebase(year_range).then(data => {
                         downloadExcelFromArray(data, "scouting_data_" + year_range + ".xlsx")
