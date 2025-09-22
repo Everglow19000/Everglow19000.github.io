@@ -379,6 +379,8 @@
         // Initialize Firebase
         var app
         var database
+        var ftcApiKey
+        var ftcApiCountriesToEvents
 
         const sendButton = document.getElementById("sendButton");
         const downloadButton = document.getElementById("downloadScoutingDataButton");
@@ -508,16 +510,20 @@
         }
 
         const firebaseEncryptedApiKey = "j7imVG6yXcamt9ZS6hYqQxdGZVXmg5C6zlaiOhAFqeujirnZo1itlbimeVcykIll2zgc1vAKiBQXcGM1Ia9wM4eEYJSdb9qGlRaQYWxNkSf6ds0="
+        const ftcEventsEncryptedUsername = "38rT4f0F8NuWxnWuy+y5jVjl9DnhE5RGu2gBkJfiAHTqusg8voIoKtkF6IJsUdJAWCva/4k6aQzS"
+        const ftcEventsEncryptedAuthorizationKey = "rPDfh3qS+lRYAYV3n1EypXEGfZiYWWTw58nDh7Yiw71MExyJjhMEYbtt0yxK1C4nlHrlMhNyQnf6lZkhK/I5+y3R7n2dZ0bnj4P0iGIJEdc="
         const passwordHash = [16, -21, -25, -78, -24, -118, -123, 106, 55, 4, 43, 80, -6, -43, 62, -18, -104, -64, 72, -16, -22, -60, -113, 63, 98, -66, -79, -46, 74, -86, 85, -16]
 
 
-        async function validatePasswordAndCreateApiKeys() {
-            if (arraysEqual(await SHA_256(inputtedPassword), passwordHash)) {
+        async function validatePasswordAndCreateApiKeys(givenPassword) {
+            if (arraysEqual(await SHA_256(givenPassword), passwordHash)) {
                 if (app == null || database == null) {
-                    firebaseConfig.apiKey = await decryptApiKey(inputtedPassword, firebaseEncryptedApiKey)
+                    firebaseConfig.apiKey = await decryptApiKey(givenPassword, firebaseEncryptedApiKey)
                     app = initializeApp(firebaseConfig)
                     database = getDatabase(app)
                 }
+                ftcApiKey = await getFtcEventsApiKey(givenPassword)
+                ftcApiCountriesToEvents = await getCountryEventMapFromFtcApi()
                 return true
             }
             else {
@@ -532,23 +538,32 @@
                 return params["password"]
             }
             else {
-                let inputtedPassword = prompt("Please enter the password: ")
-                if (inputtedPassword != null && inputtedPassword != "") {
-                    return inputtedPassword
+                let inputtedPasswordHere = prompt("Please enter the password: ")
+                if (inputtedPasswordHere != null && inputtedPasswordHere != "") {
+                    return inputtedPasswordHere
                 }
             }
         }
 
-        function getFtcApiAuthorizationKey() {
-            return "something"
+        async function getFtcEventsApiKey(givenPassword) {
+            const ftcEventsUsername = await decryptApiKey(givenPassword, ftcEventsEncryptedUsername)
+            const ftcEventsAuthorizationKey = await decryptApiKey(givenPassword, ftcEventsEncryptedAuthorizationKey)
+            return btoa(ftcEventsUsername + ":" + ftcEventsAuthorizationKey)
         }
 
         async function getCountryEventMapFromFtcApi() {
             let outputMap = new Map()
 
             let url = `https://ftc-api.firstinspires.org/v2.0/${get_year()}/events`
+
+            console.log(url)
+
+            if (!ftcApiKey) {
+                await validatePasswordAndCreateApiKeys(inputtedPassword)
+            }
+
             let headers = {
-                "Authorization": `Basic ${getFtcApiAuthorizationKey()}`,
+                "Authorization": `Basic ${ftcApiKey}`,
                 "accept": "application/json"
             }
 
@@ -579,20 +594,20 @@
                 console.error('Error fetching data:', error);
             }
         }
-
+        
         const inputtedPassword = getPassword()
 
-        if (await validatePasswordAndCreateApiKeys()) {
+        if (await validatePasswordAndCreateApiKeys(inputtedPassword)) {
             populate_year_range_select()
 
             sendButton.addEventListener('click', async () => {
-                if (await validatePasswordAndCreateApiKeys()) {
+                if (await validatePasswordAndCreateApiKeys(inputtedPassword)) {
                     write_to_firebase()
                 }
             })
 
             downloadButton.addEventListener('click', async () => {
-                if (await validatePasswordAndCreateApiKeys()) {
+                if (await validatePasswordAndCreateApiKeys(inputtedPassword)) {
                     var year_range = yearRangeSelect.value
                     fetch_from_firebase(year_range).then(data => {
                         downloadExcelFromArray(data, "scouting_data_" + year_range + ".xlsx")
@@ -600,6 +615,7 @@
                 }
             })
         }
+
 
         initializeModules()
     </script>

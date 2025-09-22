@@ -1,5 +1,5 @@
 async function SHA_256(input) {
-    return await crypto.subtle.digest("SHA-256", base64ToInt8Array(input)).then(
+    return await crypto.subtle.digest("SHA-256", base64ToUint8Array(input)).then(
         (hashBuffer) => {
             const hashArray = Array.from(new Int8Array(hashBuffer))
             return hashArray
@@ -7,7 +7,7 @@ async function SHA_256(input) {
     )
 }
 
-function base64ToInt8Array(base64String) {
+function base64ToUint8Array(base64String) {
     base64String += "=".repeat((4 - base64String.length % 4) % 4)
     // 1. Decode the Base64 string into a binary string
     //    atob() treats the input as Base64 and returns a string where each character's
@@ -15,7 +15,7 @@ function base64ToInt8Array(base64String) {
     const binaryString = atob(base64String);
 
     // 2. Create a int8Array with the same length as the binary string
-    const int8Array = new Int8Array(binaryString.length);
+    const int8Array = new Uint8Array(binaryString.length);
 
     // 3. Populate the int8Array by iterating through the binary string
     //    and getting the character code (byte value) of each character.
@@ -32,13 +32,13 @@ const IV_LENGTH = 12;
 const TAG_LENGTH = 16;
 
 async function decryptApiKey(password, encryptedKey, tagLengthIn = TAG_LENGTH, ivLengthIn = IV_LENGTH, keyLengthIn = KEY_LENGTH, iterationsIn = ITERATIONS) {
-    var combined = base64ToInt8Array(encryptedKey)
+    var data = base64ToUint8Array(encryptedKey)
 
     var salt, iv, encrypted
 
-    salt = combined.slice(0, tagLengthIn)
-    iv = combined.slice(tagLengthIn, tagLengthIn + ivLengthIn)
-    encrypted = combined.slice(tagLengthIn + ivLengthIn, combined.length)
+    salt = data.slice(0, tagLengthIn)
+    iv = data.slice(tagLengthIn, tagLengthIn + ivLengthIn)
+    encrypted = data.slice(tagLengthIn + ivLengthIn, data.length)
 
     const passwordBuffer = new TextEncoder().encode(password)
 
