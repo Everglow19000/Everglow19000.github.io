@@ -554,7 +554,7 @@
         async function getCountryEventMapFromFtcApi() {
             let outputMap = new Map()
 
-            let url = `https://ftc-api.firstinspires.org/v2.0/${get_year()}/events`
+            let url = `https://cors-anywhere.herokuapp.com/https://ftc-api.firstinspires.org/v2.0/${get_year()}/events`
 
             console.log(url)
 
