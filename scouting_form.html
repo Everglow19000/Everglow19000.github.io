@@ -381,6 +381,7 @@
         var database
         var ftcApiKey
         var ftcApiCountriesToEvents
+        var currentEventTeamsNamesList
 
         const sendButton = document.getElementById("sendButton");
         const downloadButton = document.getElementById("downloadScoutingDataButton");
@@ -524,6 +525,7 @@
                 }
                 ftcApiKey = await getFtcEventsApiKey(givenPassword)
                 ftcApiCountriesToEvents = await getCountryEventMapFromFtcApi()
+                await initCountryListDropdown()
                 return true
             }
             else {
@@ -590,6 +592,17 @@
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
+        }
+
+        async function initCountryListDropdown() {
+            let countryListDropdown = document.getElementById("countrySelectorDropdown");
+            countryListDropdown.replaceChildren()
+            ftcApiCountriesToEvents.forEach((value, key) => {
+                const newOption = document.createElement('option');
+                newOption.value = key;
+                newOption.text = key;
+                countryListDropdown.appendChild(newOption);
+            })
         }
         
         const inputtedPassword = getPassword()
@@ -809,8 +822,14 @@
 
     <select id="yearRangeSelect"></select><br>
     <button id="downloadScoutingDataButton">Download Data</button><br><br>
-    <label for="teamNameInput">Enter team name:</label>
-    <input type="text" id="teamNameInput" name="teamNameInput"><br>
+    <label for="countrySelectorDropdown">Choose country of the event:</label><br>
+    <select id="countrySelectorDropdown" name="countrySelectorDropdownName">
+    </select><br>
+    <label for="eventSelectorDropdown">Choose name of event:</label><br>
+    <select id="eventSelectorDropdown" name="eventSelectorDropdownName">
+    </select><br>
+    <label for="teamNameInput">Enter team name:</label><br>
+    <input type="text" id="teamNameInput" name="teamNameInputName"><br>
     <button id="sendButton">Send Scouting</button><br>
     <p id="total-score-display">Total Score: 0p</p>
     <h1>Autonomous</h1><br>
