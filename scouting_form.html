@@ -554,9 +554,7 @@
         async function getCountryEventMapFromFtcApi() {
             let outputMap = new Map()
 
-            let url = `https://cors-anywhere.herokuapp.com/https://ftc-api.firstinspires.org/v2.0/${get_year()}/events`
-
-            console.log(url)
+            let url = `https://corsproxy.io/?${encodeURIComponent(`https://ftc-api.firstinspires.org/v2.0/${get_year()}/events`)}`;
 
             if (!ftcApiKey) {
                 await validatePasswordAndCreateApiKeys(inputtedPassword)
@@ -578,7 +576,6 @@
                 }
 
                 const data = await response.json();
-                console.log(data)
                 let eventsList = data["events"]
                 let test = [1, 2, 3]
                 for (let i = 0; i < eventsList.length; i++) {
