@@ -22,12 +22,18 @@
             border: none;
             outline: none;
             margin: 10px 0;
-            background-color: rgba(255, 255, 255, 0.08);
+            background-color: #1e1e1e; /* Dark but not transparent */
             color: #ffffff;
             width: 100%;
             max-width: 300px;
             box-sizing: border-box;
             transition: background-color 0.2s ease;
+        }
+
+        /* Optional: Improve appearance of options in modern browsers */
+        select option {
+            background-color: #ffffff;
+            color: #000000;
         }
 
         input[type="text"]:focus,
