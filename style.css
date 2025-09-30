@@ -197,6 +197,7 @@ button:hover {
     font-size: 24px;
     width: 44px;
     height: 44px;
+    min-width: unset;   /* <-- override */
     border-radius: 50%;
     border: none;
     background-color: #5c7cfa;
