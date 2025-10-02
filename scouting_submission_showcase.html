@@ -8,6 +8,194 @@
 
 <html>
     <body>
+        <script src="./api_keys_encryption.js"></script>
+        <script src="./common_stuff.js"></script>
+        <script type="module">
+            // Import the functions you need from the SDKs you need
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+            import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-analytics.js";
+            import { getDatabase, ref, set, child, get, onChildAdded } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+            // TODO: Add SDKs for Firebase products that you want to use
+            // https://firebase.google.com/docs/web/setup#available-libraries
+
+
+
+            function arraysEqual(arr1, arr2) {
+                if (arr1.length !== arr2.length) {
+                    return false;
+                }
+                return arr1.every((value, index) => value == arr2[index]);
+            }
+
+            function getParams() {
+                var idx = document.URL.indexOf('?');
+                var params = new Array();
+                if (idx != -1) {
+                    var pairs = document.URL.substring(idx + 1, document.URL.length).split('&');
+                    for (var i = 0; i < pairs.length; i++) {
+                        var nameVal = pairs[i].split('=');
+                        params[nameVal[0]] = nameVal[1];
+                    }
+                }
+                return params;
+            }
+
+            const params = getParams()
+
+
+
+            // Your web app's Firebase configuration
+            // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+            var firebaseConfig = {
+                apiKey: "",
+
+                authDomain: "everglowftcscoutingdatabase.firebaseapp.com",
+
+                projectId: "everglowftcscoutingdatabase",
+
+                storageBucket: "everglowftcscoutingdatabase.firebasestorage.app",
+
+                messagingSenderId: "198175864321",
+
+                appId: "1:198175864321:web:7288ae6a3d5f21ba2e3200",
+
+                measurementId: "G-N22KCE322T",
+
+                databaseURL: "https://everglowftcscoutingdatabase-default-rtdb.europe-west1.firebasedatabase.app"
+
+            };
+
+            // Initialize Firebase
+            var app
+            var database
+
+            async function validatePasswordAndCreateApiKeys(givenPassword) {
+                if (arraysEqual(await SHA_256(givenPassword), passwordHash)) {
+                    if (app == null || database == null) {
+                        firebaseConfig.apiKey = await decryptApiKey(givenPassword, firebaseEncryptedApiKey)
+                        app = initializeApp(firebaseConfig)
+                        database = getDatabase(app)
+                    }
+                    return true
+                }
+                else {
+                    alert("Bad Password!")
+                    location.href = "/index.html"
+                    return false
+                }
+            }
+
+            async function getLatestInputInYearRange(receivedYearRange) {
+                if (!database) {
+                    await validatePasswordAndCreateApiKeys(inputtedPassword)
+                }
+
+                const yearRangeRef = ref(database, receivedYearRange)
+
+                return await get(yearRangeRef).then((snapshot) => {
+                    var latest = {
+                        teamName: "none",
+                        timestamp: "none",
+                        value: new Map()
+                    }
+
+                    if (snapshot.exists()) {
+                        var latestTeam = null
+                        var latestTimestamp = null
+
+                        const allTeams = snapshot.val()
+                        const allTeamsKeys = Object.keys(allTeams)
+                        for (const teamIndex in allTeamsKeys) {
+                            const team = allTeamsKeys[teamIndex]
+                            const allTeamTimestamps = Object.keys(allTeams[team])
+                            for (const timestampIndex in allTeamTimestamps) {
+                                var timestamp = allTeamTimestamps[timestampIndex]
+                                
+                                if (latestTimestamp == null || (latestTimestamp != null && latestTeam != null && new Date(timestamp).getTime() > new Date(latestTimestamp).getTime())) {
+                                    latestTeam = convertStoredTeamNameToReal(team)
+                                    latestTimestamp = timestamp
+
+                                    latest.teamName = latestTeam
+                                    latest.timestamp = latestTimestamp
+                                    latest.value = new Map([["autonomous", new Map(Object.entries(allTeams[team][timestamp]["autonomous"]))], ["opMode", new Map(Object.entries(allTeams[team][timestamp]["opMode"]))]])
+                                }
+                            }
+                        }
+                    }
+                    return latest
+                })
+            }
+
+            function getPassword() {
+                if ("password" in params) {
+                    return params["password"]
+                }
+                else {
+                    let inputtedPasswordHere = prompt("Please enter the password: ")
+                    if (inputtedPasswordHere != null && inputtedPasswordHere != "") {
+                        return inputtedPasswordHere
+                    }
+                }
+            }
+
+            const inputtedPassword = getPassword()
+
+            var latestSubmission
+            if (await validatePasswordAndCreateApiKeys(inputtedPassword)) {
+                latestSubmission = await getLatestInputInYearRange(get_year_range())
+                updateLatestSubmissionDisplay()
+
+                var yearRangeRef = ref(database, get_year_range())
+                onChildAdded(yearRangeRef, (snapshot) => {
+                    if (snapshot.exists()) {
+                        var teamName = snapshot.key
+                        var timestamp = Object.keys(snapshot.val())[0]
+                        var data = snapshot.val()[timestamp]
+
+                        if (new Date(timestamp).getTime() > new Date(latestSubmission.timestamp).getTime()) {
+                            latestSubmission.teamName = convertStoredTeamNameToReal(teamName)
+                            latestSubmission.timestamp = timestamp
+                            latestSubmission.value = new Map([["autonomous", new Map(Object.entries(data["autonomous"]))], ["opMode", new Map(Object.entries(data["opMode"]))]])
+                            updateLatestSubmissionDisplay()
+                        }
+
+                    }
+                })
+            }
+
+            //TODO: delete this
+            function deepConvertMapToObject(obj) {
+                if (obj instanceof Map) {
+                    const result = {};
+                    for (const [key, value] of obj.entries()) {
+                        result[key] = deepConvertMapToObject(value);
+                    }
+                    return result;
+                } else if (Array.isArray(obj)) {
+                    return obj.map(deepConvertMapToObject);
+                } else if (typeof obj === 'object' && obj !== null) {
+                    const result = {};
+                    for (const [key, value] of Object.entries(obj)) {
+                        result[key] = deepConvertMapToObject(value);
+                    }
+                    return result;
+                } else {
+                    return obj;
+                }
+            }
+
+
+            //TODO: Change this so it actually does something
+            function updateLatestSubmissionDisplay() {
+                console.log(latestSubmission)
+                const cleanData = deepConvertMapToObject(latestSubmission);
+                const jsonString = JSON.stringify(cleanData, null, 2);  // pretty print
+                document.getElementById("latestSubmissionDisplay").textContent = jsonString
+            }
+        </script>
+
+        
         <h2>Not yet implemented. WHY YOU HERE</h2>
+        <p id="latestSubmissionDisplay"></p>
     </body>
 </html>

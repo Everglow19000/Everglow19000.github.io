@@ -12,6 +12,7 @@
     <!-- SheetJS library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="./api_keys_encryption.js"></script>
+    <script src="./common_stuff.js"></script>
     <script type="module">
         // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
@@ -93,12 +94,16 @@
         }
 
 
-        function get_year_range() {
-            return "2025-2026"
-        }
+        function sanitizeTeamName(teamName) {
+            const specialChars = {
+                '.': `{${'.'.charCodeAt(0)}}`,
+                '#': `{${'#'.charCodeAt(0)}}`,
+                '$': `{${'$'.charCodeAt(0)}}`,
+                '[': `{${'['.charCodeAt(0)}}`,
+                ']': `{${']'.charCodeAt(0)}}`
+            };
 
-        function get_year() {
-            return "2025"
+            return teamName.replace(/[.#$\[\]]/g, char => specialChars[char]);
         }
 
         function write_to_firebase() {
@@ -106,7 +111,7 @@
             if (currentEventsTeamsNamesList.includes(teamNameInputField.value)) {
                 var currISOString = new Date().toISOString()
                 currISOString = currISOString.substring(0, currISOString.indexOf(".")).replace("T", " ")
-                const myRef = ref(database, get_year_range() + '/' + teamNameInputField.value + '/' + currISOString);
+                const myRef = ref(database, get_year_range() + '/' + sanitizeTeamName(teamNameInputField.value) + '/' + currISOString);
         
     
                 set(myRef, {
@@ -165,7 +170,7 @@
                                 var timestamp = allTeamTimestamps[timestampIndex]
                                 var autoValues = allTeams[team][timestamp]["autonomous"]
                                 var opModeValues = allTeams[team][timestamp]["opMode"]
-                                resultArray.push([team, timestamp, autoValues["netSamples"], autoValues["lowBasketSamples"], autoValues["highBasketSamples"], autoValues["lowSpecimens"], autoValues["highSpecimens"], opModeValues["netSamples"], opModeValues["lowBasketSamples"], opModeValues["highBasketSamples"], opModeValues["lowSpecimens"], opModeValues["highSpecimens"], opModeValues["ascentScore"]])
+                                resultArray.push([convertStoredTeamNameToReal(team), timestamp, autoValues["netSamples"], autoValues["lowBasketSamples"], autoValues["highBasketSamples"], autoValues["lowSpecimens"], autoValues["highSpecimens"], opModeValues["netSamples"], opModeValues["lowBasketSamples"], opModeValues["highBasketSamples"], opModeValues["lowSpecimens"], opModeValues["highSpecimens"], opModeValues["ascentScore"]])
                             }
                         }
                     }
@@ -183,7 +188,7 @@
                                 var timestamp = allTeamTimestamps[timestampIndex]
                                 var autoValues = allTeams[team][timestamp]["autonomous"]
                                 var opModeValues = allTeams[team][timestamp]["opMode"]
-                                resultArray.push([team, timestamp, autoValues["classifiedArtifacts"], autoValues["overflowArtifacts"], autoValues["artifactsMatchingPattern"], autoValues["didLeave"], opModeValues["classifiedArtifacts"], opModeValues["overflowArtifacts"], opModeValues["depotArtifacts"], opModeValues["artifactsMatchingPattern"], opModeValues["baseReturn"]])
+                                resultArray.push([convertStoredTeamNameToReal(team), timestamp, autoValues["classifiedArtifacts"], autoValues["overflowArtifacts"], autoValues["artifactsMatchingPattern"], autoValues["didLeave"], opModeValues["classifiedArtifacts"], opModeValues["overflowArtifacts"], opModeValues["depotArtifacts"], opModeValues["artifactsMatchingPattern"], opModeValues["baseReturn"]])
                             }
                         }
                     }
@@ -208,10 +213,8 @@
             XLSX.writeFile(wb, filename);
         }
 
-        const firebaseEncryptedApiKey = "j7imVG6yXcamt9ZS6hYqQxdGZVXmg5C6zlaiOhAFqeujirnZo1itlbimeVcykIll2zgc1vAKiBQXcGM1Ia9wM4eEYJSdb9qGlRaQYWxNkSf6ds0="
         const ftcEventsEncryptedUsername = "38rT4f0F8NuWxnWuy+y5jVjl9DnhE5RGu2gBkJfiAHTqusg8voIoKtkF6IJsUdJAWCva/4k6aQzS"
         const ftcEventsEncryptedAuthorizationKey = "rPDfh3qS+lRYAYV3n1EypXEGfZiYWWTw58nDh7Yiw71MExyJjhMEYbtt0yxK1C4nlHrlMhNyQnf6lZkhK/I5+y3R7n2dZ0bnj4P0iGIJEdc="
-        const passwordHash = [16, -21, -25, -78, -24, -118, -123, 106, 55, 4, 43, 80, -6, -43, 62, -18, -104, -64, 72, -16, -22, -60, -113, 63, 98, -66, -79, -46, 74, -86, 85, -16]
 
 
         async function validatePasswordAndCreateApiKeys(givenPassword) {
