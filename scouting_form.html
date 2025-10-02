@@ -94,7 +94,7 @@
         }
 
 
-        function sanitizeTeamName(teamName) {
+        function sanitizeDatabaseInput(teamName) {
             const specialChars = {
                 '.': `{${'.'.charCodeAt(0)}}`,
                 '#': `{${'#'.charCodeAt(0)}}`,
@@ -108,10 +108,16 @@
 
         function write_to_firebase() {
             let teamNameInputField = document.getElementById("teamNameInput");
-            if (currentEventsTeamsNamesList.includes(teamNameInputField.value)) {
+            if (!currentEventsTeamsNamesList.includes(teamNameInputField.value)) {
+                alert("Team does not exist!")
+            }
+            else if (document.getElementById("usernameInput").value == "") {
+                alert("Must enter username!")
+            }
+            else {
                 var currISOString = new Date().toISOString()
                 currISOString = currISOString.substring(0, currISOString.indexOf(".")).replace("T", " ")
-                const myRef = ref(database, get_year_range() + '/' + sanitizeTeamName(teamNameInputField.value) + '/' + currISOString);
+                const myRef = ref(database, get_year_range() + '/' + sanitizeDatabaseInput(teamNameInputField.value) + '/' + currISOString);
         
     
                 set(myRef, {
@@ -130,7 +136,9 @@
                         "artifactsMatchingPattern": counters.get("opMode").get("Artifacts Matching Pattern").toString(),
                         "didLeave": "false",
                         "baseReturn": counters.get("opMode").get("Base Return").toString()
-                    }
+                    },
+                    "notes": sanitizeDatabaseInput(document.getElementById("notesInput").value),
+                    "username": sanitizeDatabaseInput(document.getElementById("usernameInput").value)
                 })
     
     
@@ -140,14 +148,15 @@
                 ])
                 initializeModules()
                 updateTotalScoreDisplay()
+
+                document.getElementById("notesInput").value = ""
+
                 var scoutingDataSendSuccessIndicator = document.getElementById("scoutingDataSendSuccessIndicator")
                 scoutingDataSendSuccessIndicator.hidden = false
+
                 setTimeout(() => {
                     scoutingDataSendSuccessIndicator.hidden = true
                 }, 2000)
-            }
-            else {
-                alert("Team does not exist!")
             }
         }
 
@@ -170,14 +179,14 @@
                                 var timestamp = allTeamTimestamps[timestampIndex]
                                 var autoValues = allTeams[team][timestamp]["autonomous"]
                                 var opModeValues = allTeams[team][timestamp]["opMode"]
-                                resultArray.push([convertStoredTeamNameToReal(team), timestamp, autoValues["netSamples"], autoValues["lowBasketSamples"], autoValues["highBasketSamples"], autoValues["lowSpecimens"], autoValues["highSpecimens"], opModeValues["netSamples"], opModeValues["lowBasketSamples"], opModeValues["highBasketSamples"], opModeValues["lowSpecimens"], opModeValues["highSpecimens"], opModeValues["ascentScore"]])
+                                resultArray.push([convertDatabaseInputToIntended(team), timestamp, autoValues["netSamples"], autoValues["lowBasketSamples"], autoValues["highBasketSamples"], autoValues["lowSpecimens"], autoValues["highSpecimens"], opModeValues["netSamples"], opModeValues["lowBasketSamples"], opModeValues["highBasketSamples"], opModeValues["lowSpecimens"], opModeValues["highSpecimens"], opModeValues["ascentScore"]])
                             }
                         }
                     }
                     return resultArray
                 },
                 "2025-2026": (snapshot) => {
-                    resultArray = [["Team Name", "Date of Entry", "Autonomous Classified Artifacts", "Autonomous Overflow Artifacts", "Autonomous Artifacts Matching Pattern", "Autonomous Did Leave", "Teleop Classified Artifacts", "Teleop Overflow Artifacts", "Teleop Depot Artifacts", "Teleop Artifacts Matching Pattern", "Teleop Base Return"]];
+                    resultArray = [["Team Name", "Date of Entry", "Username that entered", "Autonomous Classified Artifacts", "Autonomous Overflow Artifacts", "Autonomous Artifacts Matching Pattern", "Autonomous Did Leave", "Teleop Classified Artifacts", "Teleop Overflow Artifacts", "Teleop Depot Artifacts", "Teleop Artifacts Matching Pattern", "Teleop Base Return", "Notes On Match"]];
                     if (snapshot.exists()) {
                         const allTeams = snapshot.val()
                         const allTeamsKeys = Object.keys(allTeams)
@@ -188,7 +197,7 @@
                                 var timestamp = allTeamTimestamps[timestampIndex]
                                 var autoValues = allTeams[team][timestamp]["autonomous"]
                                 var opModeValues = allTeams[team][timestamp]["opMode"]
-                                resultArray.push([convertStoredTeamNameToReal(team), timestamp, autoValues["classifiedArtifacts"], autoValues["overflowArtifacts"], autoValues["artifactsMatchingPattern"], autoValues["didLeave"], opModeValues["classifiedArtifacts"], opModeValues["overflowArtifacts"], opModeValues["depotArtifacts"], opModeValues["artifactsMatchingPattern"], opModeValues["baseReturn"]])
+                                resultArray.push([convertDatabaseInputToIntended(team), timestamp, convertDatabaseInputToIntended(allTeams[team][timestamp]["username"]), autoValues["classifiedArtifacts"], autoValues["overflowArtifacts"], autoValues["artifactsMatchingPattern"], autoValues["didLeave"], opModeValues["classifiedArtifacts"], opModeValues["overflowArtifacts"], opModeValues["depotArtifacts"], opModeValues["artifactsMatchingPattern"], opModeValues["baseReturn"], convertDatabaseInputToIntended(allTeams[team][timestamp]["notes"])])
                             }
                         }
                     }
@@ -626,6 +635,8 @@
 
     <select id="yearRangeSelect"></select><br>
     <button id="downloadScoutingDataButton">Download Data</button><br><br>
+    <label for="usernameInput">Enter your name:</label><br>
+    <input type="text" id="usernameInput" name="usernameInputName"><br>
     <label for="countrySelectorDropdown">Choose country of the event:</label><br>
     <select id="countrySelectorDropdown" name="countrySelectorDropdownName">
     </select><br>
@@ -640,6 +651,8 @@
         <p style="color: greenyellow; font-size: 24px;" id="scoutingDataSendSuccessIndicator" hidden>Data successfully sent!</p>
     </div>
     <p id="total-score-display">Total Score: 0p</p>
+    <label for="notesInput">Do you have any notes on the team?</label><br>
+    <input type="text" id="notesInput" name="notesInputName"><br>
     <h1>Autonomous</h1><br>
     <div class="modules-container" id="autonomousModulesContainer"></div><br><br>
     <h1>OpMode</h1><br>

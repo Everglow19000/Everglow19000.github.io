@@ -96,6 +96,7 @@
                     var latest = {
                         teamName: "none",
                         timestamp: "none",
+                        username: "none",
                         value: new Map()
                     }
 
@@ -112,12 +113,13 @@
                                 var timestamp = allTeamTimestamps[timestampIndex]
                                 
                                 if (latestTimestamp == null || (latestTimestamp != null && latestTeam != null && new Date(timestamp).getTime() > new Date(latestTimestamp).getTime())) {
-                                    latestTeam = convertStoredTeamNameToReal(team)
+                                    latestTeam = convertDatabaseInputToIntended(team)
                                     latestTimestamp = timestamp
 
                                     latest.teamName = latestTeam
                                     latest.timestamp = latestTimestamp
-                                    latest.value = new Map([["autonomous", new Map(Object.entries(allTeams[team][timestamp]["autonomous"]))], ["opMode", new Map(Object.entries(allTeams[team][timestamp]["opMode"]))]])
+                                    latest.username = allTeams[team][timestamp]["username"]
+                                    latest.value = new Map([["autonomous", new Map(Object.entries(allTeams[latestTeam][latestTimestamp]["autonomous"]))], ["opMode", new Map(Object.entries(allTeams[latestTeam][latestTimestamp]["opMode"]))]])
                                 }
                             }
                         }
@@ -153,8 +155,9 @@
                         var data = snapshot.val()[timestamp]
 
                         if (new Date(timestamp).getTime() > new Date(latestSubmission.timestamp).getTime()) {
-                            latestSubmission.teamName = convertStoredTeamNameToReal(teamName)
+                            latestSubmission.teamName = convertDatabaseInputToIntended(teamName)
                             latestSubmission.timestamp = timestamp
+                            latestSubmission.username = data["username"]
                             latestSubmission.value = new Map([["autonomous", new Map(Object.entries(data["autonomous"]))], ["opMode", new Map(Object.entries(data["opMode"]))]])
                             updateLatestSubmissionDisplay()
                         }
