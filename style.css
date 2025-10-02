@@ -173,6 +173,13 @@ button:hover {
     color: #fff;
 }
 
+/* ====== Misc. Divs ====== */
+.inline-row {
+    display: flex;
+    align-items: center; /* vertically align button and h2 */
+    gap: 15px; /* space between them */
+}
+
 /* ====== Counters & Scores ====== */
 .counter-display {
     font-size: 32px;

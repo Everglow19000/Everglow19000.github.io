@@ -103,13 +103,11 @@
 
         function write_to_firebase() {
             let teamNameInputField = document.getElementById("teamNameInput");
-            if (teamNameInputField.value in currentEventsTeamsNamesList) {
+            if (currentEventsTeamsNamesList.includes(teamNameInputField.value)) {
                 var currISOString = new Date().toISOString()
                 currISOString = currISOString.substring(0, currISOString.indexOf(".")).replace("T", " ")
                 const myRef = ref(database, get_year_range() + '/' + teamNameInputField.value + '/' + currISOString);
-    
-                console.log(counters)
-    
+        
     
                 set(myRef, {
                     "autonomous": {
@@ -135,9 +133,13 @@
                     ["autonomous", new Map()],
                     ["opMode", new Map()]
                 ])
-                totalScore = 0
                 initializeModules()
-                teamNameInputField.value = ""
+                updateTotalScoreDisplay()
+                var scoutingDataSendSuccessIndicator = document.getElementById("scoutingDataSendSuccessIndicator")
+                scoutingDataSendSuccessIndicator.hidden = false
+                setTimeout(() => {
+                    scoutingDataSendSuccessIndicator.hidden = true
+                }, 2000)
             }
             else {
                 alert("Team does not exist!")
@@ -336,36 +338,41 @@
             return allTeamsInEventNames;
         }
 
+        var teamNameAutocompleteAndDependenciesInitiated = false
         async function initTeamNameAutocompleteAndDependencies() {
-            // init country list dropdown
-            let countryListDropdown = document.getElementById("countrySelectorDropdown");
-            countryListDropdown.replaceChildren()
-
-            
-            ftcApiCountriesToEvents.forEach((value, key) => {
-                const newOption = document.createElement('option');
-                newOption.value = key;
-                newOption.text = key;
-                countryListDropdown.appendChild(newOption);
-            })
-            
-
-            // init events dropdown
-            countryListDropdown.addEventListener("change", function(event) {
-                pushEventsToEventsDropdown(event.target.value);
-            });
-
-            await pushEventsToEventsDropdown(countryListDropdown.value)
-
-
-            //init autocomplete team names datalist
-            let eventListDropdown = document.getElementById("eventSelectorDropdown");
-
-            eventListDropdown.addEventListener("change", function(event) {
-                updateTeamsNamesList(event.target.value);
-            });
-
-            await updateTeamsNamesList(eventListDropdown.value)
+            if (!teamNameAutocompleteAndDependenciesInitiated) {
+                // init country list dropdown
+                let countryListDropdown = document.getElementById("countrySelectorDropdown");
+                countryListDropdown.replaceChildren()
+    
+                
+                ftcApiCountriesToEvents.forEach((value, key) => {
+                    const newOption = document.createElement('option');
+                    newOption.value = key;
+                    newOption.text = key;
+                    countryListDropdown.appendChild(newOption);
+                })
+                
+    
+                // init events dropdown
+                countryListDropdown.addEventListener("change", function(event) {
+                    pushEventsToEventsDropdown(event.target.value);
+                });
+    
+                await pushEventsToEventsDropdown(countryListDropdown.value)
+    
+    
+                //init autocomplete team names datalist
+                let eventListDropdown = document.getElementById("eventSelectorDropdown");
+    
+                eventListDropdown.addEventListener("change", function(event) {
+                    updateTeamsNamesList(event.target.value);
+                });
+    
+                await updateTeamsNamesList(eventListDropdown.value)
+    
+                teamNameAutocompleteAndDependenciesInitiated = true
+            }
         }
 
         async function pushEventsToEventsDropdown(selectedCountry) {
@@ -375,7 +382,9 @@
 
             let eventCodeAndNameList = ftcApiCountriesToEvents.get(selectedCountry);
 
-            eventCodeAndNameList.forEach((value) => {
+            await eventCodeAndNameList.sort((a, b) => a[1].localeCompare(b[1]))
+
+            await eventCodeAndNameList.forEach((value) => {
                 const newOption = document.createElement('option');
                 newOption.value = value[0];
                 newOption.text = value[1];
@@ -456,8 +465,11 @@
             else if (value == "Partial") {
                 return 5
             }
-            else if (value == "Full" || value == "Bonus") {
+            else if (value == "Full") {
                 return 10
+            }
+            else if (value == "Bonus") {
+                return 20
             }
             return 0
         }
@@ -521,7 +533,7 @@
                         <label for="full-return">Full (10p)</label><br>
 
                         <input type="radio" name="opmode-base-return" value="Bonus" id="bonus-return">
-                        <label for="bonus-return">Bonus (+10p)</label><br>
+                        <label for="bonus-return">Bonus (10p+10p)</label><br>
                     </div>
                 `
 
@@ -549,10 +561,7 @@
                         'change', 
                         function() {
                             if (this.checked) {
-                                console.log(radioButton)
-                                console.log(this.value)
                                 counters.get("opMode").set("Base Return", this.value)
-                                console.log(counters.get("opMode").get("Base Return"))
                                 updateTotalScoreDisplay()
                             }
                         }
@@ -577,8 +586,6 @@
                 (innerMap, autonomousOrOpMode) => {
                     innerMap.forEach(
                         (value, key) => {
-                            console.log(`autoOrOpMode: ${autonomousOrOpMode} | sanitizedId: ${sanitizeId(key)} | value: ${value}`)
-                            console.log(`calculator: ${calculators.get(autonomousOrOpMode).get(sanitizeId(key))}`)
                             totalScore += calculators.get(autonomousOrOpMode).get(sanitizeId(key))(value)
                         }
                     )
@@ -625,7 +632,10 @@
     <label for="teamNameInput">Enter team name:</label><br>
     <input type="text" id="teamNameInput" name="teamNameInputName" list="teamNameSuggestions"><br>
     <datalist id="teamNameSuggestions"></datalist>
-    <button id="sendButton">Send Scouting</button><br>
+    <div class="inline-row">
+        <button id="sendButton">Send Scouting Data</button>
+        <p style="color: greenyellow; font-size: 24px;" id="scoutingDataSendSuccessIndicator" hidden>Data successfully sent!</p>
+    </div>
     <p id="total-score-display">Total Score: 0p</p>
     <h1>Autonomous</h1><br>
     <div class="modules-container" id="autonomousModulesContainer"></div><br><br>
