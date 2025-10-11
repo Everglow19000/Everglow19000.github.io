@@ -119,7 +119,7 @@
                                     latest.teamName = latestTeam
                                     latest.timestamp = latestTimestamp
                                     latest.username = allTeams[team][timestamp]["username"]
-                                    latest.value = new Map([["autonomous", new Map(Object.entries(allTeams[latestTeam][latestTimestamp]["autonomous"]))], ["opMode", new Map(Object.entries(allTeams[latestTeam][latestTimestamp]["opMode"]))]])
+                                    latest.value = new Map([["autonomous", new Map(Object.entries(allTeams[team][latestTimestamp]["autonomous"]))], ["opMode", new Map(Object.entries(allTeams[team][latestTimestamp]["opMode"]))]])
                                 }
                             }
                         }
