@@ -5,12 +5,38 @@
     <link rel="stylesheet" href="style.css">
     <link rel="icon" type="image/png" href="/images/favicon.png">
     <style>
-        #latestSubmissionsDisplay {
+        body {
+            background-color: #000;
+            color: #f0f0f0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            line-height: 1.6;
+        }
+
+        /* Header with centered logo */
+        .page-header {
+            text-align: center;
+            padding-top: 40px;   /* space from top of page */
+            padding-bottom: 20px; /* space below logo */
+        }
+
+        /* Logo image styling */
+        .logo {
+            display: inline-block; /* ensures it centers properly in text-align:center */
+            max-width: 800px;      /* adjust to desired size */
+            height: auto;
+        }
+
+        /* Module container (your submissions section) */
+        .modules-container {
             display: flex;
-            justify-content: space-around; /* or space-evenly / space-between */
-            align-items: center;
-            min-height: 100vh;
-            padding: 0 5vw; /* optional: add some horizontal margin */
+            justify-content: space-around; /* or space-evenly / center */
+            align-items: flex-start;
+            flex-wrap: wrap;
+            padding: 20px;
+            min-height: calc(100vh - 200px); /* optional, ensures it fills space */
         }
     </style>
  </head>
@@ -305,6 +331,10 @@
                 document.getElementById("latestSubmissionsDisplay").innerHTML = resultString
             }
         </script>
+
+        <header class="page-header">
+            <img src="images/everglow_logo_name_no_background_white_text.png" class="logo">
+        </header>
 
         <div class="modules-container" id="latestSubmissionsDisplay"></div>
     </body>
