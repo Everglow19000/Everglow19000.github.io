@@ -286,7 +286,7 @@
                 `
             }
 
-            function calculateTotalScore(auto, opmode) {
+            function calculateTotalScore(auto, opmode, teamName) {
                 const baseReturnScoreCalculator = (baseReturn) => {
                     if (baseReturn === "None") {
                         return 0
@@ -304,7 +304,7 @@
                 }
 
                 const didLeaveScoreCalculator = (didLeave) => {
-                    if (didLeave == true) {
+                    if (didLeave == "true") {
                         return 3
                     }
                     return 0
@@ -321,7 +321,7 @@
                     resultString += `
                             <div class="module submission-display" id="submission-display-module-index-${index}">
                                 <div style="font-size: 28px;" class="module-title">${element.teamName}</div>
-                                <div class="total-score-display">Total Score: ${calculateTotalScore(element.value.get("autonomous"), element.value.get("opMode"))}p</div>
+                                <div class="total-score-display">Total Score: ${calculateTotalScore(element.value.get("autonomous"), element.value.get("opMode"), element.teamName)}p</div>
                                 <h3>Autonomous</h3>
                                 ${autonomousDigester(element.value.get("autonomous"))}
                                 <h3>Teleop</h3>
