@@ -4,6 +4,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" type="image/png" href="/images/favicon.png">
+    <style>
+        #latestSubmissionsDisplay {
+            display: flex;
+            justify-content: space-around; /* or space-evenly / space-between */
+            align-items: center;
+            min-height: 100vh;
+            padding: 0 5vw; /* optional: add some horizontal margin */
+        }
+    </style>
  </head>
 
 <html>
@@ -85,7 +94,21 @@
                 }
             }
 
-            async function getLatestInputInYearRange(receivedYearRange) {
+            function pushValueToFrontWithoutModifyingLength(array, newValue) {
+                for (let i = array.length-1; i >= 1; i--) {
+                    array[i] = array[i-1]
+                }
+                array[0] = newValue
+            }
+
+            const latestTemplate = {
+                teamName: "none",
+                timestamp: "none",
+                username: "none",
+                value: new Map()
+            }
+
+            async function getLatestInputsInYearRange(receivedYearRange, amount) {
                 if (!database) {
                     await validatePasswordAndCreateApiKeys(inputtedPassword)
                 }
@@ -93,12 +116,8 @@
                 const yearRangeRef = ref(database, receivedYearRange)
 
                 return await get(yearRangeRef).then((snapshot) => {
-                    var latest = {
-                        teamName: "none",
-                        timestamp: "none",
-                        username: "none",
-                        value: new Map()
-                    }
+                    var allInputs = new Array()
+
 
                     if (snapshot.exists()) {
                         var latestTeam = null
@@ -111,20 +130,36 @@
                             const allTeamTimestamps = Object.keys(allTeams[team])
                             for (const timestampIndex in allTeamTimestamps) {
                                 var timestamp = allTeamTimestamps[timestampIndex]
-                                
-                                if (latestTimestamp == null || (latestTimestamp != null && latestTeam != null && new Date(timestamp).getTime() > new Date(latestTimestamp).getTime())) {
-                                    latestTeam = convertDatabaseInputToIntended(team)
-                                    latestTimestamp = timestamp
 
-                                    latest.teamName = latestTeam
-                                    latest.timestamp = latestTimestamp
-                                    latest.username = allTeams[team][timestamp]["username"]
-                                    latest.value = new Map([["autonomous", new Map(Object.entries(allTeams[team][latestTimestamp]["autonomous"]))], ["opMode", new Map(Object.entries(allTeams[team][latestTimestamp]["opMode"]))]])
-                                }
+                                const latest = structuredClone(latestTemplate)
+                                latest.teamName = convertDatabaseInputToIntended(team)
+                                latest.timestamp = timestamp
+                                latest.username = allTeams[team][timestamp]["username"]
+                                latest.value = new Map([["autonomous", new Map(Object.entries(allTeams[team][timestamp]["autonomous"]))], ["opMode", new Map(Object.entries(allTeams[team][timestamp]["opMode"]))]])
+
+                                allInputs.push(latest)
                             }
                         }
                     }
-                    return latest
+
+
+                    allInputs.sort((a, b) => {
+                        var aDate = new Date(a.timestamp)
+                        var bDate = new Date(b.timestamp)
+
+                        return bDate - aDate
+                    })
+
+                    var results = new Array(amount)
+                    for (let i = 0; i < results.length; i++) {
+                        if (i < allInputs.length) {
+                            results[i] = allInputs[i]
+                        }
+                        else {
+                            results[i] = structuredClone(latestTemplate)
+                        }
+                    }
+                    return results
                 })
             }
 
@@ -142,26 +177,41 @@
 
             const inputtedPassword = getPassword()
 
-            var latestSubmission
+            var latestSubmissions
+            var isFirstUpdate = true
+
             if (await validatePasswordAndCreateApiKeys(inputtedPassword)) {
-                latestSubmission = await getLatestInputInYearRange(get_year_range())
-                updateLatestSubmissionDisplay()
+                latestSubmissions = await getLatestInputsInYearRange(get_year_range(), 3)
+                updateLatestSubmissionsDisplay()
 
                 var yearRangeRef = ref(database, get_year_range())
                 onChildAdded(yearRangeRef, (snapshot) => {
-                    if (snapshot.exists()) {
+                    if (isFirstUpdate) {
+                        isFirstUpdate = false
+                    }
+                    else if (snapshot.exists()) {
                         var teamName = snapshot.key
-                        var timestamp = Object.keys(snapshot.val())[0]
+                        var timestamps = Object.keys(snapshot.val())
+
+                        var convertedUnixTimes = new Array(timestamps.length)
+
+                        for (let i = 0; i < timestamps.length; i++) {
+                            convertedUnixTimes[i] = new Date(timestamps[i]).getTime()
+                        }
+
+                        var timestamp = timestamps[convertedUnixTimes.indexOf(Math.max(...convertedUnixTimes))]
+
                         var data = snapshot.val()[timestamp]
 
-                        if (new Date(timestamp).getTime() > new Date(latestSubmission.timestamp).getTime()) {
+                        if (new Date(timestamp).getTime() > new Date(latestSubmissions[0].timestamp).getTime()) {
+                            var latestSubmission = { ...latestTemplate }
                             latestSubmission.teamName = convertDatabaseInputToIntended(teamName)
                             latestSubmission.timestamp = timestamp
                             latestSubmission.username = data["username"]
                             latestSubmission.value = new Map([["autonomous", new Map(Object.entries(data["autonomous"]))], ["opMode", new Map(Object.entries(data["opMode"]))]])
-                            updateLatestSubmissionDisplay()
+                            pushValueToFrontWithoutModifyingLength(latestSubmissions, latestSubmission)
+                            updateLatestSubmissionsDisplay()
                         }
-
                     }
                 })
             }
@@ -187,18 +237,75 @@
                 }
             }
 
+            function autonomousDigester(auto) {
+                const elementToUseInDigestersStartAuto = "<p>"
+                const elementTouseInDigestersEndAuto = "</p>"
+                return `
+                    ${elementToUseInDigestersStartAuto}Classified Artifacts Scored: ${auto.get("classifiedArtifacts")}${elementTouseInDigestersEndAuto}
+                    ${elementToUseInDigestersStartAuto}Overflow Artifacts Scored: ${auto.get("overflowArtifacts")}${elementTouseInDigestersEndAuto}
+                    ${elementToUseInDigestersStartAuto}Artifacts Matching Pattern: ${auto.get("artifactsMatchingPattern")}${elementTouseInDigestersEndAuto}
+                    ${elementToUseInDigestersStartAuto}Did Leave: ${auto.get("didLeave")}${elementTouseInDigestersEndAuto}
+                `
+            }
+
+            function opmodeDigester(opmode) {
+                const elementToUseInDigestersStartOpMode = "<p>"
+                const elementTouseInDigestersEndOpMode = "</p>"
+                return `
+                    ${elementToUseInDigestersStartOpMode}Classified Artifacts Scored: ${opmode.get("classifiedArtifacts")}${elementTouseInDigestersEndOpMode}
+                    ${elementToUseInDigestersStartOpMode}Overflow Artifacts Scored: ${opmode.get("overflowArtifacts")}${elementTouseInDigestersEndOpMode}
+                    ${elementToUseInDigestersStartOpMode}Depot Artifacts Scored: ${opmode.get("depotArtifacts")}${elementTouseInDigestersEndOpMode}
+                    ${elementToUseInDigestersStartOpMode}Artifacts Matching Pattern: ${opmode.get("artifactsMatchingPattern")}${elementTouseInDigestersEndOpMode}
+                    ${elementToUseInDigestersStartOpMode}Base Return Done: ${opmode.get("baseReturn")}${elementTouseInDigestersEndOpMode}
+                `
+            }
+
+            function calculateTotalScore(auto, opmode) {
+                const baseReturnScoreCalculator = (baseReturn) => {
+                    if (baseReturn === "None") {
+                        return 0
+                    }
+                    else if (baseReturn === "Partial") {
+                        return 5
+                    }
+                    else if (baseReturn === "Full") {
+                        return 10
+                    }
+                    else if (baseReturn === "Bonus") {
+                        return 20
+                    }
+                    return 0
+                }
+
+                const didLeaveScoreCalculator = (didLeave) => {
+                    if (didLeave) {
+                        return 3
+                    }
+                    return 0
+                }
+                
+                return (3*auto.get("classifiedArtifacts"))+(1*auto.get("overflowArtifacts"))+(2*auto.get("artifactsMatchingPattern"))+(didLeaveScoreCalculator(auto.get("didLeave")))+(3*opmode.get("classifiedArtifacts"))+(1*opmode.get("overflowArtifacts"))+(2*opmode.get("artifactsMatchingPattern"))+(1*opmode.get("depotArtifacts"))+(baseReturnScoreCalculator(opmode.get("baseReturn")))
+            }
+
 
             //TODO: Change this so it actually does something
-            function updateLatestSubmissionDisplay() {
-                console.log(latestSubmission)
-                const cleanData = deepConvertMapToObject(latestSubmission);
-                const jsonString = JSON.stringify(cleanData, null, 2);  // pretty print
-                document.getElementById("latestSubmissionDisplay").textContent = jsonString
+            function updateLatestSubmissionsDisplay() {
+                var resultString = ""
+                latestSubmissions.forEach((element, index) => {
+                    resultString += `
+                            <div class="module submission-display" id="submission-display-module-index-${index}">
+                                <div style="font-size: 28px;" class="module-title">${element.teamName}</div>
+                                <div class="total-score-display">Total Score: ${calculateTotalScore(element.value.get("autonomous"), element.value.get("opMode"))}p</div>
+                                <h3>Autonomous</h3>
+                                ${autonomousDigester(element.value.get("autonomous"))}
+                                <h3>Teleop</h3>
+                                ${opmodeDigester(element.value.get("opMode"))}
+                            </div>
+                    `})
+                document.getElementById("latestSubmissionsDisplay").innerHTML = resultString
             }
         </script>
 
-        
-        <h2>Not yet implemented. WHY YOU HERE</h2>
-        <p id="latestSubmissionDisplay"></p>
+        <div class="modules-container" id="latestSubmissionsDisplay"></div>
     </body>
 </html>
