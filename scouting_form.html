@@ -297,6 +297,10 @@
                         outputMap.get(eventsList[i]["country"]).push([eventsList[i]["code"], eventsList[i]["name"]])
                     }
                 }
+
+                // add non-official events here
+                outputMap.get("Israel").push(["ISRESC", "ESC | Preseason"])
+
                 return outputMap
             } catch (error) {
                 console.error('Error fetching data:', error);
@@ -341,6 +345,29 @@
         }
 
         async function getAllTeamsInEvent(eventCode) {
+            if (eventCode === "ISRESC") {
+                return [
+                    "Black Tigers 11192",
+                    "TATOOINE 12201",
+                    "BTJ 13452",
+                    "RoboTen 15298",
+                    "Fata Morgana 15637",
+                    "SciFighters 16473",
+                    "RinGoStar 18735",
+                    "Everglow 19000",
+                    "Build for Change 20669",
+                    "Fireflies 21656",
+                    "Mitzpe Yam 22646",
+                    "Flying Fox 22947",
+                    "Barnyard 22993",
+                    "Shamir 23422",
+                    "Skeleton Army 23644",
+                    "RoboEagle 25041",
+                    "M&M 28428",
+                    "GreenBlitz 30368",
+                    "Makers Assemble 32480",
+                ]
+            }
             let firstPageData = await getTeamsInEventInPageData(eventCode, 1);
             let allTeamsInEventNames = await processTeamsListIntoNames(firstPageData);
             let totalPageCount = firstPageData["pageTotal"];
