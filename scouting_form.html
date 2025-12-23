@@ -266,7 +266,8 @@
         async function getCountryEventMapFromFtcApi() {
             let outputMap = new Map()
 
-            let url = `https://corsproxy.io/?${encodeURIComponent(`https://ftc-api.firstinspires.org/v2.0/${get_year()}/events`)}`;
+            // let url = `https://corsproxy.io/?${encodeURIComponent(`https://ftc-api.firstinspires.org/v2.0/${get_year()}/events`)}`;
+            let url = `https://ftc-api.firstinspires.org/v2.0/${get_year()}/events`;
 
             if (!ftcApiKey) {
                 await validatePasswordAndCreateApiKeys(inputtedPassword)
@@ -308,7 +309,7 @@
         }
 
         async function getTeamsInEventInPageData(eventCode, pageNumber) {
-            // let url = `https://corsproxy.io/?${encodeURIComponent(`https://ftc-api.firstinspires.org/v2.0/${get_year()}/teams?eventCode=${eventCode}&page=${pageNumber}`)}`;
+            // let url = `https://corsproxy.io/?${encodeURI(`https://ftc-api.firstinspires.org/v2.0/${get_year()}/teams?eventCode=${eventCode}&page=${pageNumber}`)}`;
             let url = `https://ftc-api.firstinspires.org/v2.0/${get_year()}/teams?eventCode=${eventCode}&page=${pageNumber}`;
 
             if (!ftcApiKey) {
