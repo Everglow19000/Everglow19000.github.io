@@ -68,7 +68,7 @@
         };
 
         // Initialize Firebase
-        var app
+        var firebaseApp
         var database
         var ftcApiKey
         var ftcApiCountriesToEvents
@@ -228,10 +228,10 @@
 
         async function validatePasswordAndCreateApiKeys(givenPassword) {
             if (arraysEqual(await SHA_256(givenPassword), passwordHash)) {
-                if (app == null || database == null) {
+                if (firebaseApp == null || database == null) {
                     firebaseConfig.apiKey = await decryptApiKey(givenPassword, firebaseEncryptedApiKey)
-                    app = initializeApp(firebaseConfig)
-                    database = getDatabase(app)
+                    firebaseApp = initializeApp(firebaseConfig)
+                    database = getDatabase(firebaseApp)
                 }
                 ftcApiKey = await getFtcEventsApiKey(givenPassword)
                 ftcApiCountriesToEvents = await getCountryEventMapFromFtcApi()
@@ -266,8 +266,8 @@
         async function getCountryEventMapFromFtcApi() {
             let outputMap = new Map()
 
-            // let url = `https://corsproxy.io/?${encodeURIComponent(`https://ftc-api.firstinspires.org/v2.0/${get_year()}/events`)}`;
-            let url = `https://ftc-api.firstinspires.org/v2.0/${get_year()}/events`;
+            let url = `https://api.allorigins.win/get?url=` + encodeURIComponent(`https://ftc-api.firstinspires.org/v2.0/${get_year()}/events`);
+            // let url = `https://ftc-api.firstinspires.org/v2.0/${get_year()}/events`;
 
             if (!ftcApiKey) {
                 await validatePasswordAndCreateApiKeys(inputtedPassword)
@@ -281,7 +281,9 @@
             try {
                 const response = await fetch(url, {
                     method: 'GET',
-                    headers: headers
+                    // mode: "no-cors",
+                    headers: headers,
+                    credentials: 'include'
                 });
 
                 if (!response.ok) {
@@ -309,8 +311,9 @@
         }
 
         async function getTeamsInEventInPageData(eventCode, pageNumber) {
-            // let url = `https://corsproxy.io/?${encodeURI(`https://ftc-api.firstinspires.org/v2.0/${get_year()}/teams?eventCode=${eventCode}&page=${pageNumber}`)}`;
-            let url = `https://ftc-api.firstinspires.org/v2.0/${get_year()}/teams?eventCode=${eventCode}&page=${pageNumber}`;
+            // let url = `https://api.allorigins.win/get?url=`;
+            let url = `https://api.allorigins.win/get?url=` + encodeURIComponent(`https://ftc-api.firstinspires.org/v2.0/${get_year()}/teams?eventCode=${eventCode}&page=${pageNumber}`);
+            // let url = `https://ftc-api.firstinspires.org/v2.0/${get_year()}/teams?eventCode=${eventCode}&page=${pageNumber}`;
 
             if (!ftcApiKey) {
                 await validatePasswordAndCreateApiKeys(inputtedPassword)
@@ -324,7 +327,9 @@
             try {
                 const response = await fetch(url, {
                     method: 'GET',
-                    headers: headers
+                    // mode: "no-cors",
+                    headers: headers,
+                    credentials: 'include'
                 });
 
                 if (!response.ok) {
