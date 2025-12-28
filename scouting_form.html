@@ -266,8 +266,7 @@
         async function getCountryEventMapFromFtcApi() {
             let outputMap = new Map()
 
-            let url = `https://api.allorigins.win/get?url=` + encodeURIComponent(`https://ftc-api.firstinspires.org/v2.0/${get_year()}/events`);
-            // let url = `https://ftc-api.firstinspires.org/v2.0/${get_year()}/events`;
+            let url = `https://ftc-api-proxy.fird-ftc.workers.dev/api/v2.0/${get_year()}/events`;
 
             if (!ftcApiKey) {
                 await validatePasswordAndCreateApiKeys(inputtedPassword)
@@ -281,9 +280,7 @@
             try {
                 const response = await fetch(url, {
                     method: 'GET',
-                    // mode: "no-cors",
                     headers: headers,
-                    credentials: 'include'
                 });
 
                 if (!response.ok) {
@@ -311,9 +308,7 @@
         }
 
         async function getTeamsInEventInPageData(eventCode, pageNumber) {
-            // let url = `https://api.allorigins.win/get?url=`;
-            let url = `https://api.allorigins.win/get?url=` + encodeURIComponent(`https://ftc-api.firstinspires.org/v2.0/${get_year()}/teams?eventCode=${eventCode}&page=${pageNumber}`);
-            // let url = `https://ftc-api.firstinspires.org/v2.0/${get_year()}/teams?eventCode=${eventCode}&page=${pageNumber}`;
+            let url = `https://ftc-api-proxy.fird-ftc.workers.dev/api/v2.0/${get_year()}/teams?eventCode=${eventCode}&page=${pageNumber}`;
 
             if (!ftcApiKey) {
                 await validatePasswordAndCreateApiKeys(inputtedPassword)
@@ -327,9 +322,7 @@
             try {
                 const response = await fetch(url, {
                     method: 'GET',
-                    // mode: "no-cors",
                     headers: headers,
-                    credentials: 'include'
                 });
 
                 if (!response.ok) {
