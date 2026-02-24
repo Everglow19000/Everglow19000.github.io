@@ -21,14 +21,6 @@
         // TODO: Add SDKs for Firebase products that you want to use
         // https://firebase.google.com/docs/web/setup#available-libraries
 
-
-        function arraysEqual(arr1, arr2) {
-            if (arr1.length !== arr2.length) {
-                return false;
-            }
-            return arr1.every((value, index) => value == arr2[index]);
-        }
-
         function getParams() {
             var idx = document.URL.indexOf('?');
             var params = new Array();
@@ -222,12 +214,12 @@
             XLSX.writeFile(wb, filename);
         }
 
-        const ftcEventsEncryptedUsername = "38rT4f0F8NuWxnWuy+y5jVjl9DnhE5RGu2gBkJfiAHTqusg8voIoKtkF6IJsUdJAWCva/4k6aQzS"
-        const ftcEventsEncryptedAuthorizationKey = "rPDfh3qS+lRYAYV3n1EypXEGfZiYWWTw58nDh7Yiw71MExyJjhMEYbtt0yxK1C4nlHrlMhNyQnf6lZkhK/I5+y3R7n2dZ0bnj4P0iGIJEdc="
+        const ftcEventsEncryptedUsername = "iG5qpNKUHZBvu/4PF94RtW21us4R9ixz6JXUDS05nP8kC/BDUwgal/FQSDzZO/i0WStDrqUO207h"
+        const ftcEventsEncryptedAuthorizationKey = "DKdw7mWLSxuG+GqY/DXmAH3ZMeBhXXe+wU7iJMLv4F8pQbOFT/47r4ucOwvDq9HiyxMv+UVfOm4Dyh+fXl6igjDacM2N9/8RXvGPrF94etY="
 
 
         async function validatePasswordAndCreateApiKeys(givenPassword) {
-            if (arraysEqual(await SHA_256(givenPassword), passwordHash)) {
+            if (await SHA_256(givenPassword) == passwordHash) { 
                 if (firebaseApp == null || database == null) {
                     firebaseConfig.apiKey = await decryptApiKey(givenPassword, firebaseEncryptedApiKey)
                     firebaseApp = initializeApp(firebaseConfig)

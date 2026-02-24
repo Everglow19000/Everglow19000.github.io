@@ -53,15 +53,6 @@
             // TODO: Add SDKs for Firebase products that you want to use
             // https://firebase.google.com/docs/web/setup#available-libraries
 
-
-
-            function arraysEqual(arr1, arr2) {
-                if (arr1.length !== arr2.length) {
-                    return false;
-                }
-                return arr1.every((value, index) => value == arr2[index]);
-            }
-
             function getParams() {
                 var idx = document.URL.indexOf('?');
                 var params = new Array();
@@ -105,7 +96,7 @@
             var database
 
             async function validatePasswordAndCreateApiKeys(givenPassword) {
-                if (arraysEqual(await SHA_256(givenPassword), passwordHash)) {
+                if (await SHA_256(givenPassword) == passwordHash) {
                     if (app == null || database == null) {
                         firebaseConfig.apiKey = await decryptApiKey(givenPassword, firebaseEncryptedApiKey)
                         app = initializeApp(firebaseConfig)

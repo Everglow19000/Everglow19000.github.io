@@ -1,5 +1,5 @@
-const firebaseEncryptedApiKey = "j7imVG6yXcamt9ZS6hYqQxdGZVXmg5C6zlaiOhAFqeujirnZo1itlbimeVcykIll2zgc1vAKiBQXcGM1Ia9wM4eEYJSdb9qGlRaQYWxNkSf6ds0="
-const passwordHash = [16, -21, -25, -78, -24, -118, -123, 106, 55, 4, 43, 80, -6, -43, 62, -18, -104, -64, 72, -16, -22, -60, -113, 63, 98, -66, -79, -46, 74, -86, 85, -16]
+const firebaseEncryptedApiKey = "W25MYL2p9bPLfZrVxB7QhWMB7BDtCxJUf1vNTk5II1hbGCer7mG0J/nwSqZ3ik0XaZtCeoETJg7PyDRwI1eXO2wlLar2vJdOB0eHH3qcXWcnSwI="
+const passwordHash = "5f834b8ed4bdd57e751b12ccfae02511b070eac54b9002e9a4d6646dcf0ed6dc"
 
 function convertDatabaseInputToIntended(input) {
     return input.replace(/\{(\d+)\}/g, (_, asciiCode) => {

@@ -1,29 +1,17 @@
-async function SHA_256(input) {
-    return await crypto.subtle.digest("SHA-256", base64ToUint8Array(input)).then(
-        (hashBuffer) => {
-            const hashArray = Array.from(new Int8Array(hashBuffer))
-            return hashArray
-        }
-    )
+async function SHA_256(password) {
+    const msgUint8 = new TextEncoder().encode(password);      // 1. Encode to bytes
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8); // 2. Hash it
+    const hashArray = Array.from(new Uint8Array(hashBuffer)); // 3. Convert to array
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join(''); // 4. Hex string
+    return hashHex;
 }
 
 function base64ToUint8Array(base64String) {
-    base64String += "=".repeat((4 - base64String.length % 4) % 4)
-    // 1. Decode the Base64 string into a binary string
-    //    atob() treats the input as Base64 and returns a string where each character's
-    //    Unicode value corresponds to the byte value of the original binary data.
-    const binaryString = atob(base64String);
-
-    // 2. Create a int8Array with the same length as the binary string
-    const int8Array = new Uint8Array(binaryString.length);
-
-    // 3. Populate the int8Array by iterating through the binary string
-    //    and getting the character code (byte value) of each character.
-    for (let i = 0; i < binaryString.length; i++) {
-        int8Array[i] = binaryString.charCodeAt(i);
-    }
-
-    return int8Array;
+    // This adds the correct number of '=' characters (0, 1, or 2) 
+    // to satisfy atob's strict length-multiple-of-4 requirement.
+    const padded = base64String.padEnd(base64String.length + (4 - base64String.length % 4) % 4, '=');
+    const binaryString = atob(padded);
+    return Uint8Array.from(binaryString, (char) => char.charCodeAt(0));
 }
 
 const ITERATIONS = 100_000;
